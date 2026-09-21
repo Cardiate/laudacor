@@ -1,0 +1,23 @@
+{
+  "prompt": "xxx",
+  "lesoes": [
+    {
+      "segmento": 14,
+      "arteria": "OM2",
+      "nome_anatomico": "Segundo ramo marginal",
+      "classificacao_grau": "minima",
+      "rotulo_grau": "Mínima 1-24%",
+      "caracteristica_placa": "Predominantemente Calcificada",
+      "extensao_lesao": null
+    },
+    {
+      "segmento": 18,
+      "arteria": "L-PLB",
+      "nome_anatomico": "Ramo ventricular posterior esquerdo",
+      "classificacao_grau": "leve",
+      "rotulo_grau": "Discreta 25-49%",
+      "caracteristica_placa": "Não Calcificada",
+      "extensao_lesao": "Lesão segmentar"
+    }
+  ]
+}

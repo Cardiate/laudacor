@@ -1,0 +1,1520 @@
+<!DOCTYPE html>
+<html lang="pt-BR">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>Coronariografia — Mapa SCCT 18 Segmentos</title>
+<script src="https://cdn.jsdelivr.net/npm/docx@8.5.0/build/index.umd.min.js"></script>
+<style>
+  * { box-sizing: border-box; margin: 0; padding: 0; }
+
+  :root{
+    --bg: #0d1117; --panel: #161b22; --panel-2: #1c2230; --border: #2a3140;
+    --text: #e6edf3; --muted: #8b949e; --accent: #58a6ff;
+    --c-none: #ff00ff; --c-minima: #22d3ee; --c-leve: #4ade80;
+    --c-moderada: #facc15; --c-grave: #ef4444; --c-oclusao: #c084fc; --c-stent: #9ca3af;
+    --c-importante: #ef4444;
+  }
+
+  html, body {
+    background: var(--bg); color: var(--text);
+    font-family: 'Segoe UI', system-ui, -apple-system, sans-serif;
+    font-size: 16px; min-height: 100vh;
+    -webkit-print-color-adjust: exact; print-color-adjust: exact;
+  }
+
+  .app{
+    display: grid; grid-template-columns: 1fr 380px;
+    grid-template-areas: "stage panel" "report report" "footer footer";
+    gap: 20px; padding: 20px; max-width: 1800px; margin: 0 auto;
+  }
+
+  .stage{ grid-area: stage; background: var(--panel); border: 1px solid var(--border); border-radius: 12px; padding: 16px; position: relative; overflow: hidden; }
+  .stage-header{ display: flex; justify-content: space-between; align-items: center; margin-bottom: 12px; flex-wrap: wrap; gap: 8px; }
+  .stage-header h1{ font-size: 20px; font-weight: 600; }
+  .stage-header .hint{ font-size: 14px; color: var(--muted); }
+
+  .canvas-wrap{ position: relative; width: 100%; aspect-ratio: 2020 / 1400; background: #000; border-radius: 8px; overflow: hidden; user-select: none; }
+  .logo-marca{ position: absolute; bottom: 8px; right: 8px; width: 20%; max-width: 280px; height: auto; z-index: 5; pointer-events: none; border-radius: 2px; opacity: 0.4; }
+  .canvas-wrap svg{ position: absolute; inset: 0; width: 100%; height: 100%; display: block; }
+
+  .seg-hot{ fill: none; stroke: transparent; stroke-width: 40; stroke-linecap: round; cursor: pointer; pointer-events: stroke; }
+  .seg-calib{ fill: none; stroke: #ff00ff; stroke-width: 3; stroke-dasharray: 8 5; pointer-events: none; opacity: 0.9; stroke-linecap: round; }
+  .seg-highlight{ fill: none; stroke-linecap: round; pointer-events: none; opacity: 0.0; mix-blend-mode: screen; transition: opacity .2s ease; stroke-width: 18; }
+  .seg-highlight.selected{ opacity: 0.4; stroke: var(--accent) !important; }
+  .seg-highlight.classified{ opacity: 0.85; }
+  .seg-pin{ pointer-events: none; font-size: 18px; font-weight: 700; fill: #fff; paint-order: stroke; stroke: rgba(0,0,0,0.9); stroke-width: 3.5px; text-anchor: middle; dominant-baseline: middle; }
+  .seg-pin-bg{ display: none; }
+  .artery-label{ pointer-events: none; font-size: 26px; font-weight: 700; fill: rgba(255,255,255,0.85); paint-order: stroke; stroke: rgba(0,0,0,0.8); stroke-width: 5px; text-anchor: middle; letter-spacing: 1px; text-transform: uppercase; }
+
+  .panel{ grid-area: panel; display: flex; flex-direction: column; gap: 16px; }
+
+  .tab-header{ display: flex; gap: 8px; }
+  .tab-btn{ flex: 1; background: var(--panel); border: 1px solid var(--border); color: var(--muted); padding: 14px; border-radius: 8px; cursor: pointer; font-size: 16px; font-weight: 600; transition: all 0.2s; }
+  .tab-btn:hover{ border-color: var(--accent); color: var(--text); }
+  .tab-btn.active{ background: var(--accent); color: #000; border-color: var(--accent); }
+
+  .tab-content{ display: none; flex-direction: column; gap: 16px; }
+  .tab-content.active{ display: flex; }
+
+  .card{ background: var(--panel); border: 1px solid var(--border); border-radius: 12px; padding: 16px; }
+  .card h2{ font-size: 16px; text-transform: uppercase; letter-spacing: 0.8px; color: var(--muted); margin-bottom: 12px; }
+
+  .selected-info{ display: flex; align-items: center; gap: 14px; }
+  .selected-badge{ width: 56px; height: 56px; border-radius: 10px; background: var(--panel-2); border: 1px solid var(--border); display: flex; align-items: center; justify-content: center; font-size: 26px; font-weight: 700; color: var(--accent); }
+  .selected-meta .artery{ font-size: 17px; font-weight: 600; }
+  .selected-meta .sub{ font-size: 14px; color: var(--muted); margin-top: 4px; }
+
+  .class-grid{ display: grid; grid-template-columns: 1fr 1fr; gap: 10px; margin-top: 16px; }
+  .class-btn{ background: var(--panel-2); border: 1px solid var(--border); color: var(--text); padding: 14px 10px; border-radius: 8px; cursor: pointer; font-size: 14px; display: flex; align-items: center; gap: 10px; text-align: left; }
+  .class-btn:hover{ border-color: var(--accent); }
+  .class-btn.active{ border-color: currentColor; background: #1f2738; }
+  .swatch{ width: 16px; height: 16px; border-radius: 4px; flex-shrink: 0; }
+
+  .summary-list{ display: flex; flex-direction: column; gap: 8px; max-height: 400px; overflow-y: auto; padding-right: 4px; }
+  .summary-group h3{ font-size: 15px; color: var(--text); margin-bottom: 6px; border-bottom: 1px solid var(--border); padding-bottom: 4px; }
+  .summary-item{ display: flex; align-items: center; gap: 10px; padding: 10px; background: var(--panel-2); border-radius: 6px; border-left: 4px solid var(--c-none); font-size: 14px; cursor: pointer; margin-bottom: 4px; }
+  .summary-item:hover{ background: #232b3d; }
+  .summary-item .num{ font-weight: 700; color: var(--muted); width: 24px; font-size: 15px;}
+  .summary-item .name{ flex: 1; }
+
+  .sis-card{ background: var(--panel); border: 1px solid var(--border); border-radius: 12px; padding: 16px; }
+  .sis-card h2{ font-size: 16px; text-transform: uppercase; letter-spacing: 0.8px; color: var(--muted); margin-bottom: 12px; }
+  .sis-display{ text-align: center; padding: 8px 0; }
+  .sis-label{ font-size: 12px; color: var(--muted); text-transform: uppercase; letter-spacing: 0.8px; margin-bottom: 16px; }
+  .sis-number-row{ display: flex; align-items: center; gap: 20px; justify-content: center; padding: 12px 0; }
+  .sis-number-box{ background: var(--panel-2); border: 2px solid var(--border); border-radius: 12px; padding: 12px 20px; min-width: 90px; }
+  .sis-number-label{ font-size: 13px; color: var(--muted); font-weight: 600; text-transform: uppercase; letter-spacing: 1px; margin-bottom: 4px; }
+  .sis-number{ font-size: 42px; font-weight: 800; color: var(--accent); line-height: 1; }
+  .sis-detail{ display: flex; flex-direction: column; align-items: flex-start; gap: 6px; }
+  .sis-count{ font-size: 14px; color: var(--text); font-weight: 500; }
+  .sis-arrow{ font-size: 18px; color: var(--muted); font-weight: 400; }
+  .sis-class{ font-size: 18px; font-weight: 700; }
+  .sis-scale{ font-size: 11px; color: var(--muted); margin-top: 12px; line-height: 1.5; padding: 8px; background: var(--panel-2); border-radius: 6px; }
+
+  .btn{ width: 100%; background: var(--panel-2); border: 1px solid var(--border); color: var(--text); padding: 14px; border-radius: 8px; cursor: pointer; font-size: 15px; font-weight: 500; transition: all 0.15s; }
+  .btn:hover{ border-color: var(--accent); background: #1f2738; }
+  .btn:disabled{ background: #2a3140; color: var(--muted); cursor: not-allowed; border-color: var(--border); }
+  .btn.primary{ background: var(--accent); color: #000; border-color: var(--accent); }
+  .btn.primary:hover{ background: #4493f8; }
+  .btn.danger{ border-color: rgba(239, 68, 68, 0.3); color: var(--c-importante); }
+  .btn.danger:hover{ background: rgba(239, 68, 68, 0.1); border-color: var(--c-importante); }
+
+  .actions{ display: grid; grid-template-columns: 1fr 1fr; gap: 10px; margin-top: 16px; }
+  .actions-row{ display: grid; grid-template-columns: repeat(auto-fit, minmax(180px, 1fr)); gap: 12px; margin-top: 20px; }
+
+  .input-group{ margin-bottom: 16px; }
+  .input-group label{ display: block; font-size: 13px; color: var(--muted); margin-bottom: 8px; text-transform: uppercase; font-weight: 600; }
+  .input-group input, .input-group select{ width: 100%; padding: 12px; border: 1px solid var(--border); border-radius: 6px; background: var(--panel-2); font-size: 16px; color: var(--text); transition: border-color 0.2s; }
+  .input-group input:focus, .input-group select:focus{ outline: none; border-color: var(--accent); }
+
+  #patientAge::-webkit-inner-spin-button,
+  #patientAge::-webkit-outer-spin-button { -webkit-appearance: none; margin: 0; }
+  #patientAge { -moz-appearance: textfield; appearance: textfield; }
+
+  .input-group select {
+    appearance: none;
+    background-image: url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' width='24' height='24' viewBox='0 0 24 24' fill='none' stroke='%238b949e' stroke-width='2' stroke-linecap='round' stroke-linejoin='round'%3E%3Cpolyline points='6 9 12 15 18 9'%3E%3C/polyline%3E%3C/svg%3E");
+    background-repeat: no-repeat;
+    background-position: right 12px center;
+    padding-right: 40px;
+    cursor: pointer;
+  }
+
+  .checkbox-row{ display: flex; align-items: center; gap: 10px; background: var(--panel-2); border: 1px solid var(--border); padding: 12px; border-radius: 6px; cursor: pointer; transition: all 0.15s; user-select: none; }
+  .checkbox-row:hover{ border-color: var(--accent); background: #1f2738; }
+  .checkbox-row.checked{ border-color: var(--accent); background: rgba(88,166,255,0.08); }
+  .checkbox-row input[type="checkbox"]{ width: 20px; height: 20px; cursor: pointer; accent-color: var(--accent); flex-shrink: 0; }
+  .checkbox-row .ck-label{ font-size: 15px; color: var(--text); font-weight: 500; text-transform: none; }
+  .checkbox-row .ck-status{ margin-left: auto; font-size: 13px; color: var(--muted); font-weight: 600; }
+  .checkbox-row.checked .ck-status{ color: var(--accent); }
+
+  .ai-info{ font-size: 13px; color: var(--muted); margin-top: 16px; line-height: 1.6; background: rgba(88, 166, 255, 0.05); padding: 12px; border-radius: 6px; border: 1px solid var(--border); }
+
+  .report-section{ grid-area: report; background: var(--panel); border: 1px solid var(--border); border-radius: 12px; padding: 24px; }
+  .report-header{ display: flex; justify-content: space-between; border-bottom: 1px solid var(--border); padding-bottom: 16px; margin-bottom: 24px; flex-wrap: wrap; gap: 10px; }
+  .report-header h1{ font-size: 22px; color: var(--text); }
+  .report-header h2{ font-size: 16px; color: var(--muted); font-weight: 400; }
+
+  .patient-grid{ display: grid; grid-template-columns: repeat(auto-fit, minmax(180px, 1fr)); gap: 16px; margin-bottom: 24px; padding-bottom: 24px; border-bottom: 1px solid var(--border); }
+  .patient-grid .input-group{ margin-bottom: 0; }
+
+  .report-textarea{ width: 100%; min-height: 220px; background: var(--panel-2); border: 1px solid var(--border); color: var(--text); padding: 16px; border-radius: 8px; font-family: 'Segoe UI', sans-serif; font-size: 16px; resize: vertical; line-height: 1.6; }
+  .report-textarea:focus{ outline: none; border-color: var(--accent); }
+
+  .signature-block{ margin-top: 40px; text-align: center; display: none; }
+
+  .app-footer{ grid-area: footer; display: flex; justify-content: space-between; align-items: center; background: var(--panel); border: 1px solid var(--border); border-radius: 12px; padding: 16px 24px; font-size: 13px; color: var(--muted); flex-wrap: wrap; gap: 12px; margin-top: 10px; }
+  .footer-left { display: flex; flex-direction: column; gap: 4px; }
+  .footer-left span { color: var(--muted); }
+  .footer-social { display: flex; gap: 16px; align-items: center; }
+  .footer-social a { color: var(--muted); display: flex; align-items: center; transition: color 0.2s; }
+  .footer-social a:hover { color: var(--accent); }
+  .footer-social svg { width: 20px; height: 20px; fill: currentColor; }
+
+  @media (max-width: 1024px) {
+    .app{ grid-template-columns: 1fr; grid-template-areas: "stage" "panel" "report" "footer"; }
+    .app-footer { flex-direction: column; text-align: center; }
+  }
+  @media (max-width: 600px) {
+    .stage-header h1{ font-size: 18px; }
+    .artery-label{ font-size: 18px; stroke-width: 3px; }
+    .actions{ grid-template-columns: 1fr; }
+    .sis-number{ font-size: 32px; }
+    .sis-number-row{ flex-direction: column; gap: 12px; }
+  }
+
+  @media print {
+    @page{ size: A4 portrait; margin: 15mm; }
+    .panel, .stage-header, .actions, .actions-row, .seg-hot, .seg-pin-bg, .seg-pin, .btn, .logo-marca, .app-footer{ display: none !important; }
+    body, html{ background: #fff !important; color: #000 !important; }
+    .app{ display: block !important; max-width: 100% !important; padding: 0 !important; margin: 0 !important; }
+    .stage{ background: #fff !important; border: none !important; padding: 0 !important; margin-bottom: 20px !important; }
+    .canvas-wrap{ max-height: 60vh !important; border: 1px solid #000 !important; background: #fff !important; }
+    .seg-calib, .seg-highlight{ mix-blend-mode: normal !important; -webkit-print-color-adjust: exact !important; print-color-adjust: exact !important; }
+    .seg-calib{ opacity: 0.95 !important; stroke: #c800c8 !important; }
+    .seg-highlight{ opacity: 0.9 !important; }
+    .report-section{ background: #fff !important; color: #000 !important; border: none !important; padding: 0 !important; }
+    .report-header{ border-bottom: 2px solid #000 !important; }
+    .report-header h1{ color: #000 !important; font-size: 18px !important; }
+    .patient-grid{ grid-template-columns: repeat(5, 1fr) !important; border-bottom: 1px solid #000 !important; }
+    .patient-grid .input-group label{ color: #000 !important; font-weight: bold; font-size: 10pt !important; }
+    .patient-grid .input-group input{ border: none !important; border-bottom: 1px solid #000 !important; background: transparent !important; color: #000 !important; padding: 0 !important; font-size: 11pt !important; }
+    .report-textarea{ border: none !important; color: #000 !important; background: transparent !important; font-family: 'Times New Roman', serif !important; font-size: 12pt !important; }
+    .signature-block{ display: block !important; margin-top: 60px !important; }
+  }
+</style>
+</head>
+<body>
+
+<div class="app">
+  <div class="stage">
+    <div class="stage-header">
+      <h1>Mapa Coronariano — SCCT 18 Segmentos</h1>
+      <span class="hint">Clique no vaso para classificar</span>
+    </div>
+    <div class="canvas-wrap" id="canvasWrap">
+      <img src="logo.png" alt="Logomarca" class="logo-marca">
+      <svg id="overlay" viewBox="0 0 2020 1400" xmlns="http://www.w3.org/2000/svg">
+        <g id="highlights"></g><g id="hotspots"></g><g id="calibLines"></g><g id="labels"></g><g id="pins"></g>
+      </svg>
+    </div>
+  </div>
+
+  <div class="panel">
+    <div class="tab-header">
+      <button class="tab-btn active" data-tab="tab-lesoes">Lesões</button>
+      <button class="tab-btn" data-tab="tab-config">Configurações</button>
+    </div>
+
+    <div class="tab-content active" id="tab-lesoes">
+      <div class="card">
+        <h2>Segmento Selecionado</h2>
+        <div class="selected-info">
+          <div class="selected-badge" id="selBadge">—</div>
+          <div class="selected-meta">
+            <div class="artery" id="selArtery">Nenhum segmento</div>
+            <div class="sub" id="selDesc">Clique sobre um vaso na imagem</div>
+          </div>
+        </div>
+        <div class="class-grid" id="classGrid"></div>
+
+        <div id="subClassGroup" style="display: none; margin-top: 16px; border-top: 1px solid var(--border); padding-top: 16px;">
+
+          <!-- Tipo de LM (Bifurcada/Trifurcada/Anomalia) -->
+          <div class="input-group" id="groupLMTipo" style="margin-bottom: 12px; display: none;">
+            <label>Tipo de Tronco (LM)</label>
+            <select id="lmTipoSelect">
+              <option value="">Selecione...</option>
+              <option value="bifurcada">⑂ Bifurcada</option>
+              <option value="trifurcada">⑈ Trifurcada</option>
+              <option value="anomalia">⚠ Anomalia</option>
+            </select>
+          </div>
+
+          <div class="input-group" id="groupPlaca" style="margin-bottom: 12px;">
+            <label>Placa</label>
+            <select id="placaSelect">
+              <option value="">Selecione...</option>
+              <option value="nao_calcificada">○ Não calcificada</option>
+              <option value="pred_nao_calcificada">◐ Parcialmente calcificada</option>
+              <option value="pred_calcificada">● Calcificada</option>
+            </select>
+          </div>
+
+          <div class="input-group" id="groupExtensao" style="margin-bottom: 0;">
+            <label>Extensão da Lesão</label>
+            <select id="extensaoSelect">
+              <option value="">Selecione...</option>
+              <option value="focal">○ Lesão Focal</option>
+              <option value="segmentar">●──● Lesão Segmentar</option>
+              <option value="difusa">●────● Lesão Difusa</option>
+              <option value="multiplas">● ● Lesões Múltiplas</option>
+            </select>
+          </div>
+
+          <div class="input-group" id="groupHRP" style="margin-bottom: 0;">
+            <label>Características de Placa de alto risco (HRP)</label>
+            <select id="hrpSelect">
+              <option value="">Selecione...</option>
+              <option value="remodelamento"> ↗ Remodelamento positivo</option>
+              <option value="puntiforme"> • Calcificação puntiforme (spotty)</option>
+              <option value="baixaatenuacao"> ▱ Placa de baixa atenuação</option>
+              <option value="guardanapo">◉ Sinal do anel de guardanapo (napkin-ring sign)</option>
+            </select>
+          </div>
+
+          <div class="input-group" id="groupStent" style="margin-bottom: 12px; display: none;">
+            <label>Reestenose intra-stent (ISR)</label>
+            <select id="stentSelect">
+              <option value="">Selecione...</option>
+              <option value="sem_reestenose">✓ Sem reestenose</option>
+              <option value="isr_nao_significativa">ISR Não significativa — &lt;50%</option>
+              <option value="isr_significativa">ISR Significativa — ≥50%</option>
+              <option value="stent_ocluido">Stent ocluído — 100%</option>
+              <option value="stent_nao_interpretavel">Não interpretável</option>
+            </select>
+          </div>
+
+          <div class="input-group" id="groupStentMorfo" style="margin-bottom: 12px; display: none;">
+            <label>Classificação morfológica</label>
+            <select id="stentMorfoSelect">
+              <option value="">Selecione...</option>
+              <option value="focal">Focal</option>
+              <option value="difusa">Difusa</option>
+              <option value="difusa_confinada">Difusa &gt; 10 mm, confinada ao stent</option>
+              <option value="difusa_proliferativa">Difusa/proliferativa &gt; 10 mm, além das bordas</option>
+              <option value="oclusao_total">Oclusão total</option>
+            </select>
+          </div>
+
+          <div class="input-group" id="groupStentArtefato" style="margin-bottom: 0; display: none;">
+            <label>Artefato causador</label>
+            <select id="stentArtefatoSelect">
+              <option value="">Selecione...</option>
+              <option value="ruido_excessivo">Ruído excessivo</option>
+              <option value="contraste_subotimo">Contraste intraluminal subótimo</option>
+              <option value="movimento_corporal">Movimento corporal</option>
+              <option value="movimento_respiratorio">Movimento respiratório</option>
+              <option value="movimento_cardiaco">Movimento cardíaco</option>
+              <option value="transicao_stairstep">Transição / stairstep</option>
+              <option value="interpolacao">Interpolação</option>
+              <option value="duplicacao">Duplicação</option>
+              <option value="endurecimento_feixe">Endurecimento do feixe</option>
+              <option value="artefato_metalico">Artefato metálico</option>
+              <option value="blooming">Blooming</option>
+            </select>
+          </div>
+
+          <div class="input-group" id="groupEnxertoTipo" style="margin-bottom: 12px; display: none;">
+            <label>Tipo de Enxerto</label>
+            <select id="enxertoTipoSelect">
+              <option value="">Selecione...</option>
+              <option value="arterial">Arterial</option>
+              <option value="venoso">Venoso</option>
+            </select>
+          </div>
+
+          <div class="input-group" id="groupEnxertoAnastProx" style="margin-bottom: 12px; display: none;">
+            <label>Anastomose proximal</label>
+            <div class="checkbox-row" id="enxertoAnastProxRow">
+              <input type="checkbox" id="enxertoAnastProxInput">
+              <span class="ck-label">Anastomose proximal</span>
+              <span class="ck-status">Ausente</span>
+            </div>
+          </div>
+
+          <div class="input-group" id="groupEnxertoAnastDist" style="margin-bottom: 12px; display: none;">
+            <label>Anastomose distal</label>
+            <div class="checkbox-row" id="enxertoAnastDistRow">
+              <input type="checkbox" id="enxertoAnastDistInput">
+              <span class="ck-label">Anastomose distal</span>
+              <span class="ck-status">Ausente</span>
+            </div>
+          </div>
+
+          <div class="input-group" id="groupEnxertoLeito" style="margin-bottom: 0; display: none;">
+            <label>Leito distal</label>
+            <div class="checkbox-row" id="enxertoLeitoRow">
+              <input type="checkbox" id="enxertoLeitoInput">
+              <span class="ck-label">Leito distal</span>
+              <span class="ck-status">Ausente</span>
+            </div>
+          </div>
+
+          <div class="input-group" id="groupNaoInterpretavel" style="margin-bottom: 0; display: none;">
+            <label>Artefato causador</label>
+            <select id="naoInterpretavelSelect">
+              <option value="">Selecione...</option>
+              <option value="ruido_excessivo">Ruído excessivo</option>
+              <option value="contraste_subotimo">Contraste intraluminal subótimo</option>
+              <option value="movimento_corporal">Movimento corporal</option>
+              <option value="movimento_respiratorio">Movimento respiratório</option>
+              <option value="movimento_cardiaco">Movimento cardíaco</option>
+              <option value="transicao_stairstep">Transição / stairstep</option>
+              <option value="interpolacao">Interpolação</option>
+              <option value="duplicacao">Duplicação</option>
+              <option value="endurecimento_feixe">Endurecimento do feixe</option>
+              <option value="artefato_metalico">Artefato metálico</option>
+              <option value="blooming">Blooming</option>
+            </select>
+          </div>
+        </div>
+
+        <div class="actions">
+          <button class="btn danger" id="btnClear">Remover Lesão</button>
+          <button class="btn" id="btnExport">Baixar JSON IA</button>
+        </div>
+      </div>
+
+      <div class="sis-card">
+        <h2>Carga de Placa - SIS</h2>
+        <div class="sis-display">
+          <div class="sis-label">Segment Involvement Score — calculado automaticamente</div>
+          <div class="sis-number-row">
+            <div class="sis-number-box">
+              <div class="sis-number-label">SIS</div>
+              <div class="sis-number" id="sisNumero">0</div>
+            </div>
+            <div class="sis-detail">
+              <div class="sis-count" id="sisSegmentos">0 segmentos acometidos</div>
+              <div class="sis-arrow">→</div>
+              <div class="sis-class" id="sisClassificacao" style="color: #8b949e;">Ausente</div>
+            </div>
+          </div>
+          <div class="sis-scale">
+            0 = Ausente · 1–2 = Leve · 3–4 = Moderada · 5–7 = Importante · ≥8 = Extensa
+          </div>
+        </div>
+      </div>
+
+      <div class="card">
+        <h2>Resumo de Lesões</h2>
+        <div class="summary-list" id="summaryList">
+          <div style="text-align:center; color:var(--muted); font-size:14px; padding:20px 0;">Nenhuma lesão identificada.</div>
+        </div>
+      </div>
+    </div>
+
+    <div class="tab-content" id="tab-config">
+      <div class="card">
+        <h2>Configurações de Perfil</h2>
+        <div class="input-group">
+          <label for="userApiKey">Sua Chave da Anthropic (Claude API)</label>
+          <input type="password" id="userApiKey" placeholder="sk-ant-...">
+        </div>
+        <button class="btn primary" id="btnSaveKey">Salvar Chave no Servidor</button>
+        <div class="ai-info">
+          🔒 <strong>Segurança:</strong> Sua chave não é salva no navegador. Ela é enviada de forma segura para o nosso servidor, criptografada e armazenada no seu perfil. Usaremos ela apenas para gerar os laudos em seu nome utilizando o Claude (Anthropic).
+        </div>
+      </div>
+    </div>
+  </div>
+
+  <div class="report-section">
+    <div class="report-header">
+      <h1>LAUDO DE ANGIOTOMOGRAFIA DAS ARTÉRIAS CORONARIANAS</h1>
+      <h2>Classificação SCCT 18 Segmentos</h2>
+    </div>
+
+    <div class="patient-grid">
+      <div class="input-group"><label>Nome do Paciente</label><input type="text" id="patientName" placeholder="Digite o nome..."></div>
+      <div class="input-group"><label>Idade</label><input type="number" id="patientAge" placeholder="Anos"></div>
+      <div class="input-group">
+        <label>Data do Exame</label>
+        <input type="text" id="examDateText" placeholder="dd/mm/aaaa" readonly style="cursor: pointer;">
+        <input type="date" id="examDate" style="position: absolute; width: 1px; height: 1px; opacity: 0; pointer-events: none;">
+      </div>
+      <div class="input-group"><label>Nome do Médico (assinatura)</label><input type="text" id="doctorName" placeholder="Dr(a)...."></div>
+    </div>
+
+    <h2 style="font-size: 16px; text-transform: uppercase; letter-spacing: 0.8px; color: var(--muted); margin-bottom: 12px; margin-top: 8px;">Angiotomografia (com contraste)</h2>
+
+    <div class="input-group">
+      <label>Técnica</label>
+      <textarea id="tecnica" class="report-textarea" style="min-height: 90px;">Cortes tomográficos com 64 canais, 0,5 mm de espessura, sincronizada ao ECG, pré e pós-contraste venoso não iônico (350 mg/ml). As imagens foram analisadas em reconstruções multiplanares e tridimensionais.</textarea>
+    </div>
+
+    <div class="input-group">
+      <label>Qualidade/Confiabilidade</label>
+      <select id="qualidadeSelect">
+        <option value="Excelente">Excelente</option>
+        <option value="Boa">Boa</option>
+        <option value="Regular">Regular</option>
+        <option value="Ruim">Ruim</option>
+        <option value="Não diagnóstica.">Não diagnóstica</option>
+      </select>
+    </div>
+
+    <div class="input-group" id="qualidadeOutraGroup" style="display: none;">
+      <label>Especifique a Qualidade/Confiabilidade</label>
+      <input type="text" id="qualidadeOutraInput" placeholder="Descreva a limitação ou observação...">
+    </div>
+
+    <div class="input-group">
+      <label>Resumo das Lesões</label>
+      <textarea id="resumoLesoes" class="report-textarea" style="min-height: 140px;" placeholder="Selecione os segmentos no mapa"></textarea>
+    </div>
+
+    <div class="input-group">
+      <label>Outros Achados</label>
+      <textarea id="outrosAchados" class="report-textarea" style="min-height: 100px;" placeholder="Descreva outros achados"></textarea>
+    </div>
+
+    <div class="input-group">
+      <label>Conclusão</label>
+      <textarea id="conclusao" class="report-textarea" style="min-height: 100px;" placeholder="Digite a conclusão do laudo..."></textarea>
+    </div>
+
+    <div class="signature-block">
+      <div class="signature-line" style="width: 300px; height: 1px; background: #000; margin: 0 auto 5px auto;"></div>
+      <div class="signature-name" id="signName" style="font-weight: bold; color: #000;">Dr. Nome do Médico</div>
+      <div class="signature-role" style="color: #333;">Médico Cardiologista</div>
+    </div>
+
+    <div class="actions-row">
+      <button class="btn danger" id="btnClearAll">Limpar Tudo</button>
+      <button class="btn" id="btnGenerateAI">Gerar Laudo com IA</button>
+      <button class="btn primary" id="btnExportWord">Exportar Word (.docx)</button>
+    </div>
+  </div>
+
+  <footer class="app-footer">
+    <div class="footer-left">
+      <span>&copy; <span id="currentYear"></span> Todos os direitos reservados.</span>
+    </div>
+    <div class="footer-social">
+      <a href="https://www.linkedin.com/company/imsidebr" target="_blank" title="LinkedIn" aria-label="LinkedIn">
+        <svg viewBox="0 0 24 24" xmlns="http://www.w3.org/2000/svg"><path d="M19 0h-14c-2.761 0-5 2.239-5 5v14c0 2.761 2.239 5 5 5h14c2.762 0 5-2.239 5-5v-14c0-2.761-2.238-5-5-5zm-11 19h-3v-11h3v11zm-1.5-12.268c-.966 0-1.75-.79-1.75-1.764s.784-1.764 1.75-1.764 1.75.79 1.75 1.764-.783 1.764-1.75 1.764zm13.5 12.268h-3v-5.604c0-3.368-4-3.113-4 0v5.604h-3v-11h3v1.765c1.396-2.586 7-2.777 7 2.476v6.759z"/></svg>
+      </a>
+      <a href="https://www.imside.ai/" target="_blank" title="Site Oficial" aria-label="Site Oficial">
+        <svg viewBox="0 0 24 24" xmlns="http://www.w3.org/2000/svg"><path d="M12 0c-6.627 0-12 5.373-12 12s5.373 12 12 12 12-5.373 12-12-5.373-12-12-12zm0 22c-5.514 0-10-4.486-10-10s4.486-10 10-10 10 4.486 10 10-4.486 10-10 10zm8.421-11h-3.821c-.062-1.929-.475-3.734-1.204-5.215 2.324-.854 3.913-2.413 4.337-2.837 1.045 1.354 1.688 3.049 1.688 5.052zm-16.842 0c0-2.003.643-3.698 1.688-5.052.424.424 2.013 1.983 4.337 2.837-.729 1.481-1.142 3.286-1.204 5.215h-3.821c0-.025 0-.05 0-.075zm5.179-6.526c-1.812-.658-3.036-1.758-3.516-2.238 1.375-1.312 3.197-2.13 5.179-2.221-.662.975-1.193 2.499-1.663 4.459zm2.242 6.526h-2.241c.057-1.722.421-3.193 1.014-4.382.918-.143 1.87-.143 2.788 0 .593 1.189.957 2.66 1.014 4.382h-2.575zm0 2h2.575c-.057 1.722-.421 3.193-1.014 4.382-.918.143-1.87.143-2.788 0-.593-1.189-.957-2.66-1.014-4.382h2.241zm0-13.985c1.982.091 3.804.909 5.179 2.221-.48.48-1.704 1.58-3.516 2.238-.47-1.96-1.001-3.484-1.663-4.459zm3.563 17.511c1.812.658 3.036 1.758 3.516 2.238-1.375 1.312-3.197 2.13-5.179 2.221.662-.975 1.193-2.499 1.663-4.459zm-3.563 4.459c-1.982-.091-3.804-.909-5.179-2.221.48-.48 1.704-1.58 3.516-2.238.47 1.96 1.001 3.484 1.663 4.459zm5.763-5.194c.729-1.481 1.142-3.286 1.204-5.215h3.821c-.05 2.003-.693 3.698-1.738 5.052-.424-.424-2.013-1.983-4.337-2.837z"/></svg>
+      </a>
+      <a href="https://www.instagram.com/imsidebr/" target="_blank" title="Instagram" aria-label="Instagram">
+        <svg viewBox="0 0 24 24" xmlns="http://www.w3.org/2000/svg"><path d="M12 2.163c3.204 0 3.584.012 4.85.07 3.252.148 4.771 1.691 4.919 4.919.058 1.265.069 1.645.069 4.849 0 3.205-.012,3.584-.069 4.849-.149 3.225-1.664 4.771-4.919 4.919-1.266.058-1.644.07-4.85.07-3.204 0-3.584-.012-4.849-.07-3.26-.149-4.771-1.699-4.919-4.92-.058-1.265-.07-1.644-.07-4.849 0-3.204.013-3.583.07-4.849.149-3.227 1.664-4.771 4.919-4.919 1.266-.057 1.645-.069 4.849-.069zm0-2.163c-3.259 0-3.667.014-4.947.072-4.358.2-6.78 2.618-6.98 6.98-.059 1.281-.073 1.689-.073 4.948 0 3.259.014 3.668.072 4.948.2 4.358 2.618 6.78 6.98 6.98 1.281.058 1.689.072 4.948.072 3.259 0 3.668-.014 4.948-.072 4.354-.2 6.782-2.618 6.979-6.98.059-1.28.073-1.689.073-4.948 0-3.259-.014-3.667-.072-4.947-.196-4.354-2.617-6.78-6.979-6.98-1.281-.059-1.69-.073-4.949-.073zm0 5.838c-3.403 0-6.162 2.759-6.162 6.162s2.759 6.163 6.162 6.163 6.162-2.759 6.162-6.163c0-3.403-2.759-6.162-6.162-6.162zm0 10.162c-2.209 0-4-1.79-4-4 0-2.209 1.791-4 4-4s4 1.791 4 4c0 2.21-1.791 4-4 4zm6.406-11.845c-.796 0-1.441.645-1.441 1.44s.645 1.44 1.441 1.44c.795 0 1.439-.645 1.439-1.44s-.644-1.44-1.439-1.44z"/></svg>
+      </a>
+    </div>
+  </footer>
+
+</div>
+
+<script>
+const API_BASE_URL = '/api';
+
+const SEGMENTS = {
+  0:{ artery: "Aorta", name: "Aorta", path: "M 741,444 L 739,446 L 714,449 L 673,459 L 651,471 L 631,485 L 599,516 L 575,551 L 558,592 L 552,620 L 551,666 L 553,683 L 560,710 L 578,749 L 601,780 L 628,805 L 652,821 L 691,838 L 727,845 L 768,845 L 810,834 L 839,820 L 865,802 L 896,773 L 909,751 L 933,699 L 938,673 L 938,636 L 931,593 L 919,562 L 909,543 L 893,520 L 867,493 L 835,470 L 803,455 L 779,448", pinX: 740, pinY: 660 },
+  1:{ artery: "RCA Proximal", name: "Segmento proximal da coronária direita", path: "M 720,428 L 686,394 L 658,328 L 654,309 L 657,279 L 663,253 L 662,248 L 649,264 L 637,297 L 640,321 L 653,365 L 652,370 L 620,351 L 576,330 L 542,318 L 506,309 L 389,309 L 350,318 L 324,326 L 318,330 L 323,353 L 334,372 L 342,371 L 368,360 L 393,354 L 424,350 L 466,350 L 528,363 L 561,374 L 571,380 L 539,424 L 518,460 L 503,497 L 496,524 L 496,532 L 501,530 L 515,492 L 539,452 L 572,413 L 596,393 L 615,401 L 632,412 L 666,444 L 699,432", pinX: 500, pinY: 330 },
+  2:{ artery: "RCA Mid", name: "Segmento médio da coronária direita", path: "M 300,338 L 264,358 L 237,376 L 215,393 L 189,416 L 160,447 L 136,478 L 112,516 L 112,522 L 120,529 L 134,536 L 164,543 L 189,552 L 265,590 L 301,601 L 308,601 L 309,598 L 307,596 L 296,592 L 264,576 L 204,537 L 180,525 L 164,520 L 160,517 L 169,503 L 185,484 L 224,445 L 263,414 L 292,395 L 320,379 L 320,376 L 318,375 L 318,370 L 316,368 L 316,360 L 307,342 L 303,338", pinX: 200, pinY: 440 },
+  3:{ artery: "RCA Distal", name: "Segmento distal da coronária direita", path: "M 104,537 L 99,545 L 92,562 L 81,595 L 74,625 L 70,651 L 69,674 L 68,675 L 68,714 L 71,744 L 78,777 L 86,800 L 95,819 L 110,842 L 130,864 L 146,876 L 167,886 L 186,891 L 200,891 L 204,889 L 208,878 L 209,868 L 211,863 L 210,852 L 206,850 L 192,850 L 179,847 L 164,840 L 154,833 L 139,818 L 129,804 L 120,786 L 115,772 L 110,751 L 106,719 L 106,703 L 105,702 L 106,677 L 110,644 L 115,618 L 123,588 L 136,558 L 136,554 L 131,550 L 128,550 L 125,547 L 119,547 L 116,543", pinX: 90, pinY: 740 },
+  4:{ artery: "RCA PDA", name: "Artéria descendente posterior direita", path: "M 532,734 L 528,730 L 517,733 L 476,750 L 471,751 L 445,762 L 437,764 L 424,770 L 419,771 L 375,789 L 370,790 L 335,805 L 312,813 L 307,816 L 302,817 L 263,833 L 242,840 L 234,844 L 223,847 L 221,849 L 221,854 L 222,855 L 220,858 L 220,877 L 221,881 L 227,887 L 237,887 L 242,890 L 257,890 L 261,885 L 267,872 L 275,867 L 278,867 L 283,864 L 286,864 L 289,862 L 294,861 L 344,841 L 399,815 L 443,790 L 488,763 L 496,757 L 511,749 L 530,737", pinX: 350, pinY: 815 },
+  5:{ artery: "LM", name: "Tronco da coronária esquerda", path: "M 905,774 L 927,774 L 928,775 L 938,775 L 939,776 L 945,776 L 946,777 L 951,777 L 952,778 L 956,778 L 957,779 L 960,779 L 961,780 L 964,780 L 965,781 L 968,781 L 969,782 L 971,782 L 972,783 L 977,784 L 980,786 L 985,787 L 988,789 L 990,789 L 991,790 L 993,790 L 994,791 L 996,791 L 997,792 L 1000,792 L 1001,793 L 1005,793 L 1006,792 L 1009,792 L 1010,791 L 1013,791 L 1014,790 L 1016,790 L 1017,789 L 1019,789 L 1020,788 L 1023,788 L 1024,787 L 1026,787 L 1027,786 L 1029,786 L 1030,785 L 1032,785 L 1033,784 L 1035,784 L 1036,783 L 1038,783 L 1039,782 L 1041,782 L 1042,781 L 1043,781 L 1044,780 L 1047,780 L 1048,779 L 1050,779 L 1051,778 L 1052,778 L 1053,777 L 1055,777 L 1056,776 L 1057,776 L 1058,775 L 1060,775 L 1061,774 L 1062,774 L 1064,772 L 1065,772 L 1066,771 L 1066,770 L 1067,769 L 1067,768 L 1068,767 L 1068,765 L 1069,764 L 1069,741 L 1068,740 L 1068,735 L 1066,732 L 1065,732 L 1064,731 L 1061,731 L 1060,730 L 1052,730 L 1051,729 L 1040,729 L 1039,728 L 1027,728 L 1026,727 L 1017,727 L 1016,726 L 1007,726 L 1006,725 L 997,725 L 996,724 L 988,724 L 987,723 L 981,723 L 980,722 L 973,722 L 972,721 L 968,721 L 967,720 L 963,720 L 962,719 L 958,719 L 957,718 L 953,718 L 952,717 L 949,717 L 948,716 L 946,716 L 945,717 L 944,717 L 943,720 L 938,726 L 937,729 L 935,731 L 935,732 L 933,734 L 933,735 L 931,737 L 931,738 L 929,740 L 929,741 L 923,749 L 922,752 L 920,754 L 920,755 L 918,757 L 918,758 L 916,760 L 916,761 L 914,763 L 914,764 L 912,766 L 912,767 L 910,769 L 910,770 L 908,772 L 906,772 L 905,773", pinX: 995, pinY: 760 },
+  6:{ artery: "LAD Proximal", name: "Segmento proximal da descendente anterior", path: "M 1273,470 L 1270,473 L 1284,515 L 1294,562 L 1301,612 L 1306,669 L 1310,692 L 1307,695 L 1280,704 L 1215,719 L 1151,728 L 1082,731 L 1078,736 L 1078,758 L 1080,772 L 1084,780 L 1106,785 L 1131,787 L 1191,787 L 1226,784 L 1268,777 L 1300,769 L 1341,756 L 1355,748 L 1355,736 L 1345,710 L 1332,615 L 1320,565 L 1304,523 L 1284,485", pinX: 1220, pinY: 750 },
+  7:{ artery: "LAD Mid", name: "Segmento médio da descendente anterior", path: "M 1527,360 L 1525,360 L 1524,363 L 1540,393 L 1549,428 L 1557,484 L 1557,509 L 1553,523 L 1546,535 L 1535,545 L 1360,668 L 1360,709 L 1363,714 L 1365,725 L 1368,727 L 1368,732 L 1375,740 L 1394,733 L 1430,715 L 1503,672 L 1578,618 L 1616,586 L 1633,568 L 1630,561 L 1609,536 L 1587,506 L 1575,449 L 1561,408 L 1547,381 L 1536,367", pinX: 1500, pinY: 620 },
+  8:{ artery: "LAD Distal", name: "Segmento distal da descendente anterior", path: "M 1943,125 L 1933,104 L 1906,92 L 1870,90 L 1811,96 L 1593,142 L 1298,216 L 1295,221 L 1308,221 L 1629,149 L 1767,123 L 1833,115 L 1870,115 L 1897,123 L 1904,131 L 1905,145 L 1889,182 L 1808,293 L 1798,314 L 1778,341 L 1723,400 L 1605,501 L 1636,551 L 1643,556 L 1749,452 L 1841,334 L 1922,196 L 1940,152", pinX: 1800, pinY: 350 },
+  9:{ artery: "D1", name: "Primeiro ramo diagonal", path: "M 1363,767 L 1364,771 L 1372,772 L 1391,766 L 1403,760 L 1409,759 L 1425,768 L 1482,808 L 1528,844 L 1572,886 L 1610,927 L 1612,927 L 1613,925 L 1611,920 L 1586,881 L 1566,854 L 1535,817 L 1499,782 L 1446,740 L 1448,737 L 1462,730 L 1467,724 L 1465,721 L 1455,722 L 1434,729 L 1399,743 L 1378,754 L 1372,758", pinX: 1495, pinY: 800 },
+  10:{ artery: "D2", name: "Segundo ramo diagonal", path: "M 1603,618 L 1599,624 L 1596,633 L 1596,639 L 1599,643 L 1603,643 L 1612,635 L 1616,633 L 1634,643 L 1672,668 L 1722,703 L 1748,723 L 1797,765 L 1844,811 L 1847,810 L 1837,793 L 1796,741 L 1725,666 L 1721,664 L 1682,632 L 1647,606 L 1647,604 L 1655,596 L 1668,586 L 1686,569 L 1688,564 L 1683,564 L 1636,589 L 1621,600", pinX: 1725, pinY: 690 },
+  11:{ artery: "LCx Proximal", name: "Segmento proximal da circunflexa", path: "M 1019,797 L 1016,799 L 1014,799 L 1008,802 L 1006,804 L 1005,804 L 1003,807 L 1003,811 L 1002,812 L 1002,827 L 1001,828 L 1001,854 L 1000,855 L 1000,871 L 999,872 L 999,884 L 998,885 L 998,894 L 997,895 L 997,902 L 996,903 L 995,916 L 994,917 L 993,927 L 992,928 L 992,931 L 991,932 L 991,936 L 990,937 L 990,940 L 989,941 L 989,944 L 988,945 L 987,952 L 985,956 L 985,959 L 984,960 L 984,962 L 982,966 L 982,969 L 981,970 L 981,972 L 979,976 L 979,979 L 978,980 L 978,983 L 977,985 L 979,987 L 986,988 L 990,991 L 994,991 L 995,992 L 997,992 L 1002,996 L 1007,996 L 1009,998 L 1013,999 L 1017,1002 L 1019,1002 L 1022,1004 L 1024,1004 L 1029,1007 L 1032,1007 L 1033,1006 L 1033,1002 L 1034,1001 L 1036,993 L 1038,990 L 1039,982 L 1040,981 L 1040,978 L 1042,974 L 1042,971 L 1046,965 L 1046,961 L 1047,960 L 1047,957 L 1048,956 L 1048,952 L 1049,951 L 1049,948 L 1050,947 L 1050,943 L 1051,942 L 1051,938 L 1052,937 L 1052,933 L 1053,932 L 1053,928 L 1054,927 L 1055,915 L 1056,914 L 1056,907 L 1057,906 L 1057,897 L 1058,896 L 1058,856 L 1057,855 L 1057,846 L 1056,845 L 1056,838 L 1055,837 L 1055,831 L 1054,830 L 1054,826 L 1028,801 L 1027,801 L 1023,797", pinX: 1025, pinY: 895 },
+  12:{ artery: "OM1", name: "Primeiro ramo marginal", path: "M 1056,980 L 1046,1007 L 1045,1014 L 1083,1027 L 1163,1058 L 1233,1091 L 1335,1150 L 1406,1197 L 1434,1219 L 1438,1218 L 1438,1215 L 1403,1179 L 1374,1153 L 1317,1108 L 1268,1075 L 1228,1052 L 1155,1016 L 1062,980", pinX: 1200, pinY: 1055 },
+  13:{ artery: "LCx Mid e distal", name: "Segmento médio e distal da circunflexa", path: "M 283,913 L 337,1004 L 374,1056 L 398,1081 L 403,1090 L 471,1143 L 518,1172 L 570,1194 L 635,1208 L 714,1210 L 732,1204 L 746,1204 L 807,1188 L 880,1160 L 938,1128 L 973,1101 L 1004,1067 L 1027,1026 L 1020,1019 L 1006,1016 L 978,998 L 972,998 L 951,1032 L 913,1077 L 884,1102 L 843,1125 L 787,1146 L 728,1163 L 674,1168 L 620,1166 L 591,1160 L 553,1147 L 517,1128 L 469,1094 L 435,1065 L 425,1060 L 354,973 L 320,916 L 295,911", pinX: 700, pinY: 1185 },
+  14:{ artery: "OM2", name: "Segundo ramo marginal", path: "M 949,1163 L 950,1167 L 956,1166 L 973,1152 L 981,1151 L 1053,1176 L 1124,1205 L 1169,1227 L 1234,1265 L 1278,1294 L 1338,1338 L 1341,1337 L 1339,1331 L 1279,1275 L 1225,1233 L 1186,1206 L 1153,1186 L 1106,1162 L 1058,1141 L 1012,1124 L 1010,1120 L 1035,1093 L 1034,1088 L 1029,1089 L 1014,1097 L 983,1119 L 960,1144", pinX: 1090, pinY: 1175 },
+  15:{ artery: "LCx PDA", name: "Artéria descendente posterior esquerda", path: "M 562,788 L 557,788 L 556,789 L 550,789 L 549,790 L 544,790 L 543,791 L 538,791 L 537,792 L 520,794 L 519,795 L 515,795 L 514,796 L 492,800 L 490,802 L 487,802 L 486,803 L 485,802 L 477,803 L 470,806 L 466,806 L 458,809 L 451,810 L 446,812 L 444,814 L 441,813 L 437,815 L 434,815 L 431,817 L 419,821 L 416,821 L 407,824 L 404,826 L 396,828 L 381,835 L 379,835 L 374,838 L 372,838 L 365,842 L 363,842 L 314,867 L 312,869 L 293,880 L 291,882 L 291,889 L 293,891 L 297,892 L 301,896 L 306,899 L 316,900 L 317,901 L 323,901 L 325,902 L 350,886 L 363,880 L 369,876 L 371,876 L 405,859 L 407,859 L 414,855 L 416,855 L 450,839 L 459,836 L 475,828 L 477,828 L 498,818 L 500,818 L 507,814 L 509,814 L 516,810 L 518,810 L 523,807 L 532,804 L 541,799 L 543,799 L 554,793 L 558,792 L 561,790", pinX: 400, pinY: 845 },
+  16:{ artery: "RCA PLB", name: "Ramo ventricular posterior direito", path: "M 211,901 L 210,904 L 214,912 L 296,1033 L 408,1209 L 432,1242 L 466,1276 L 491,1291 L 523,1303 L 554,1310 L 581,1312 L 619,1312 L 657,1307 L 701,1293 L 720,1284 L 719,1279 L 649,1286 L 583,1284 L 536,1272 L 498,1249 L 469,1225 L 399,1113 L 280,933 L 264,903 L 242,901 L 235,898 L 222,898", pinX: 371.42, pinY: 1110.427 },
+  17:{ artery: "RI", name: "Ramo intermédio", path: "M 1039,792 L 1073,828 L 1169,872 L 1355,964 L 1367,976 L 1372,978 L 1373,975 L 1510,1051 L 1646,1139 L 1787,1243 L 1796,1246 L 1793,1240 L 1758,1206 L 1642,1109 L 1531,1029 L 1390,938 L 1281,878 L 1119,797 L 1085,796 L 1068,789 L 1054,788", pinX: 1450, pinY: 1000 },
+  18:{ artery: "L-PLB", name: "Ramo ventricular posterior esquerdo", path: "M 549,924 L 544,924 L 541,926 L 539,926 L 536,928 L 534,928 L 514,938 L 512,940 L 505,944 L 502,947 L 497,950 L 491,956 L 490,956 L 479,967 L 479,968 L 473,974 L 473,975 L 466,983 L 466,984 L 460,992 L 459,995 L 457,997 L 453,1006 L 451,1008 L 442,1026 L 441,1030 L 439,1032 L 434,1028 L 433,1028 L 425,1020 L 424,1020 L 404,1000 L 402,1000 L 401,1001 L 402,1005 L 411,1021 L 422,1034 L 422,1035 L 439,1052 L 440,1052 L 447,1058 L 448,1058 L 459,1066 L 462,1067 L 464,1069 L 478,1076 L 480,1076 L 481,1077 L 486,1077 L 486,1074 L 484,1072 L 484,1071 L 474,1061 L 474,1060 L 468,1053 L 468,1048 L 469,1047 L 470,1039 L 471,1038 L 471,1036 L 472,1035 L 472,1033 L 473,1032 L 473,1030 L 474,1029 L 474,1027 L 475,1026 L 475,1024 L 476,1023 L 479,1012 L 483,1004 L 483,1002 L 490,988 L 492,986 L 494,981 L 496,979 L 500,972 L 503,969 L 503,968 L 510,961 L 510,960 L 512,959 L 523,948 L 524,948 L 534,939 L 535,939 L 538,936 L 543,933 L 549,927", pinX: 470, pinY: 1000 }
+};
+
+const ARTERY_LABELS = [
+  { text: "RCA", x: 180, y: 380 }, { text: "RCA-PDA", x: 350, y: 750}, { text: "L-PDA", x: 420, y: 900}, { text: "LM", x: 995, y: 700 }, { text: "L-PLB", x: 540, y: 1010}, { text: "R-PLB", x: 300, y: 1200},
+  { text: "OM2", x: 1080, y: 1250 }, { text: "OM1", x:1200 , y: 1150 }, { text: "RAMUS", x:1550 , y: 1150 }, { text: "D1", x:1490 , y: 890 },  { text: "D2", x: 1740, y: 790},
+  { text: "LCX", x: 700, y: 1150 }, { text: "LAD", x: 1700, y: 320 }
+];
+
+const CLASSIFICATIONS = {
+  minima:   { label: "Mínima 1-24%",            raw: "#22d3ee" },
+  leve:     { label: "Leve 25-49%",             raw: "#4ade80" },
+  moderada: { label: "Moderada 50-69%",         raw: "#facc15" },
+  grave:    { label: "Importante 70-99%",       raw: "#fb923c" },
+  oclusao:  { label: "Ocluída 100%",            raw: "#ef4444" },
+  stent:    { label: "Stent",                   raw: "#c084fc" },
+  enxerto:  { label: "Enxerto",                 raw: "#9ca3af" },
+  naointerpretavel:  { label: "Não Interpretável", raw: "#c4a484" }
+};
+
+const PLAQUES = {
+  nao_calcificada: "Não calcificada",
+  pred_calcificada: "Parcialmente calcificada",
+  pred_nao_calcificada: "Calcificada"
+};
+
+const EXTENSAO_LESAO = {
+  focal: "Lesão Focal",
+  segmentar: "Lesão Segmentar",
+  difusa: "Lesão Difusa",
+  multiplas: "Lesões Múltiplas"
+};
+
+const HRP_FEATURES = {
+  remodelamento: "Remodelamento positivo",
+  puntiforme: "Calcificação puntiforme (spotty)",
+  baixaatenuacao: "Placa de baixa atenuação",
+  guardanapo: "Sinal do anel de guardanapo (napkin-ring sign)"
+};
+
+const LM_TIPOS = {
+  bifurcada: "Bifurcada",
+  trifurcada: "Trifurcada",
+  anomalia: "Anomalia"
+};
+
+const STENT_RESTENOSIS = {
+  sem_reestenose: "✓ Sem reestenose",
+  isr_nao_significativa: "ISR Não significativa (<50%)",
+  isr_significativa: "ISR Significativa (≥50%)",
+  stent_ocluido: "Stent ocluído (100%)",
+  stent_nao_interpretavel: "Não interpretável"
+};
+
+const STENT_MORFOLOGIA = {
+  focal: "Focal",
+  difusa: "Difusa",
+  difusa_confinada: "Difusa > 10 mm, confinada ao stent",
+  difusa_proliferativa: "Difusa/proliferativa > 10 mm, além das bordas",
+  oclusao_total: "Oclusão total"
+};
+
+const ENXERTO_TIPOS = {
+  arterial: "Arterial",
+  venoso: "Venoso"
+};
+
+const NAO_INTERPRETAVEL_ARTIFATOS = {
+  ruido_excessivo: "Ruído excessivo",
+  contraste_subotimo: "Contraste intraluminal subótimo",
+  movimento_corporal: "Movimento corporal",
+  movimento_respiratorio: "Movimento respiratório",
+  movimento_cardiaco: "Movimento cardíaco",
+  transicao_stairstep: "Transição / stairstep",
+  interpolacao: "Interpolação",
+  duplicacao: "Duplicação",
+  endurecimento_feixe: "Endurecimento do feixe",
+  artefato_metalico: "Artefato metálico",
+  blooming: "Blooming"
+};
+
+// Manter EXTENSIONS para compatibilidade com código existente
+const EXTENSIONS = HRP_FEATURES;
+
+const LM_SEGMENT_ID = 5;
+
+function isLMSegment(id) {
+  return Number(id) === LM_SEGMENT_ID;
+}
+
+const state = { selected: null, classified: {} };
+const SVG_NS = "http://www.w3.org/2000/svg";
+
+document.getElementById("currentYear").textContent = new Date().getFullYear();
+
+document.querySelectorAll(".tab-btn").forEach(btn => {
+  btn.addEventListener("click", () => {
+    document.querySelectorAll(".tab-btn").forEach(b => b.classList.remove("active"));
+    document.querySelectorAll(".tab-content").forEach(c => c.classList.remove("active"));
+    btn.classList.add("active");
+    document.getElementById(btn.dataset.tab).classList.add("active");
+  });
+});
+
+function buildSegments() {
+  const hotspotsG = document.getElementById("hotspots");
+  const highlightsG = document.getElementById("highlights");
+  const calibG = document.getElementById("calibLines");
+  const pinsG = document.getElementById("pins");
+  const labelsG = document.getElementById("labels");
+
+  ARTERY_LABELS.forEach(l => {
+    const txt = document.createElementNS(SVG_NS, "text");
+    txt.setAttribute("x", l.x); txt.setAttribute("y", l.y);
+    txt.setAttribute("class", "artery-label"); txt.textContent = l.text;
+    labelsG.appendChild(txt);
+  });
+
+  for (const id in SEGMENTS) {
+    const seg = SEGMENTS[id];
+    const num = Number(id);
+
+    const hot = document.createElementNS(SVG_NS, "path");
+    hot.setAttribute("d", seg.path); hot.setAttribute("class", "seg-hot");
+    hot.dataset.id = id; hot.addEventListener("click", () => selectSegment(num));
+    hotspotsG.appendChild(hot);
+
+    const calib = document.createElementNS(SVG_NS, "path");
+    calib.setAttribute("d", seg.path); calib.setAttribute("class", "seg-calib");
+    calibG.appendChild(calib);
+
+    const hl = document.createElementNS(SVG_NS, "path");
+    hl.setAttribute("d", seg.path); hl.setAttribute("class", "seg-highlight");
+    hl.dataset.id = id; highlightsG.appendChild(hl);
+
+    let pinX, pinY;
+    if (seg.pinX !== undefined) { pinX = seg.pinX; pinY = seg.pinY; }
+    else {
+      const nums = seg.path.match(/-?\d+\.?\d*/g).map(Number);
+      pinX = (nums[0] + nums[nums.length - 2]) / 2;
+      pinY = (nums[1] + nums[nums.length - 1]) / 2;
+    }
+
+    const bg = document.createElementNS(SVG_NS, "circle");
+    bg.setAttribute("cx", pinX); bg.setAttribute("cy", pinY);
+    bg.setAttribute("r", 13); bg.setAttribute("class", "seg-pin-bg");
+    pinsG.appendChild(bg);
+
+    const txt = document.createElementNS(SVG_NS, "text");
+    txt.setAttribute("x", pinX); txt.setAttribute("y", pinY + 1);
+    txt.setAttribute("class", "seg-pin"); txt.textContent = num;
+    pinsG.appendChild(txt);
+  }
+  document.getElementById("examDate").valueAsDate = new Date();
+  sincronizarDataDisplay();
+  renderHighlights();
+}
+
+function formatarDataBR(dataISO) {
+  if (!dataISO) return "";
+  const [ano, mes, dia] = dataISO.split("-");
+  return `${dia}/${mes}/${ano}`;
+}
+
+function sincronizarDataDisplay() {
+  document.getElementById("examDateText").value = formatarDataBR(document.getElementById("examDate").value);
+}
+
+const examDateInput = document.getElementById("examDate");
+const examDateText = document.getElementById("examDateText");
+examDateText.addEventListener("click", () => {
+  if (typeof examDateInput.showPicker === "function") {
+    try { examDateInput.showPicker(); } catch (e) { examDateInput.focus(); }
+  } else {
+    examDateInput.focus();
+  }
+});
+examDateInput.addEventListener("change", sincronizarDataDisplay);
+
+const qualidadeSelect = document.getElementById("qualidadeSelect");
+const qualidadeOutraGroup = document.getElementById("qualidadeOutraGroup");
+qualidadeSelect.addEventListener("change", () => {
+  qualidadeOutraGroup.style.display = qualidadeSelect.value === "outra" ? "block" : "none";
+});
+
+function gerarTextoQualidade() {
+  if (qualidadeSelect.value === "outra") {
+    const texto = document.getElementById("qualidadeOutraInput").value.trim();
+    return texto ? texto : "Outra observação sobre qualidade/confiabilidade não especificada.";
+  }
+  return qualidadeSelect.value;
+}
+
+function selectSegment(id) {
+  state.selected = id;
+  const seg = SEGMENTS[id];
+  document.getElementById("selBadge").textContent = id;
+  document.getElementById("selArtery").textContent = `${seg.artery} — ${seg.name}`;
+
+  const classData = state.classified[id];
+  document.getElementById("selDesc").textContent = classData && classData.type
+    ? `Classificado: ${CLASSIFICATIONS[classData.type].label}`
+    : "Sem lesão";
+
+  renderHighlights();
+  renderClassGrid();
+}
+
+function renderHighlights() {
+  document.querySelectorAll(".seg-highlight").forEach(el => {
+    const id = Number(el.dataset.id);
+    el.classList.remove("selected", "classified");
+    el.style.display = "none";
+
+    const classData = state.classified[id];
+    if (classData && classData.type) {
+      el.style.display = "block";
+      el.setAttribute("stroke", CLASSIFICATIONS[classData.type].raw);
+      el.classList.add("classified");
+    } else if (state.selected === id) {
+      el.style.display = "block";
+      el.setAttribute("stroke", "#58a6ff");
+      el.classList.add("selected");
+    }
+  });
+}
+
+function renderClassGrid() {
+  const grid = document.getElementById("classGrid");
+  const subGroup = document.getElementById("subClassGroup");
+  const placaSelect = document.getElementById("placaSelect");
+  const extensaoSelect = document.getElementById("extensaoSelect");
+  const stentSelect = document.getElementById("stentSelect");
+  const stentMorfoSelect = document.getElementById("stentMorfoSelect");
+  const stentArtefatoSelect = document.getElementById("stentArtefatoSelect");
+  const enxertoTipoSelect = document.getElementById("enxertoTipoSelect");
+  const enxertoAnastProxInput = document.getElementById("enxertoAnastProxInput");
+  const enxertoAnastProxRow = document.getElementById("enxertoAnastProxRow");
+  const enxertoAnastDistInput = document.getElementById("enxertoAnastDistInput");
+  const enxertoAnastDistRow = document.getElementById("enxertoAnastDistRow");
+  const enxertoLeitoInput = document.getElementById("enxertoLeitoInput");
+  const enxertoLeitoRow = document.getElementById("enxertoLeitoRow");
+  const naoInterpretavelSelect = document.getElementById("naoInterpretavelSelect");
+  const lmTipoSelect = document.getElementById("lmTipoSelect");
+  const hrpSelect = document.getElementById("hrpSelect");
+
+  const groupPlaca = document.getElementById("groupPlaca");
+  const groupExtensao = document.getElementById("groupExtensao");
+  const groupHRP = document.getElementById("groupHRP");
+  const groupStent = document.getElementById("groupStent");
+  const groupStentMorfo = document.getElementById("groupStentMorfo");
+  const groupStentArtefato = document.getElementById("groupStentArtefato");
+  const groupEnxertoTipo = document.getElementById("groupEnxertoTipo");
+  const groupEnxertoAnastProx = document.getElementById("groupEnxertoAnastProx");
+  const groupEnxertoAnastDist = document.getElementById("groupEnxertoAnastDist");
+  const groupEnxertoLeito = document.getElementById("groupEnxertoLeito");
+  const groupNaoInterpretavel = document.getElementById("groupNaoInterpretavel");
+  const groupLMTipo = document.getElementById("groupLMTipo");
+
+  grid.innerHTML = "";
+
+  const currentData = state.classified[state.selected];
+  const isLM = isLMSegment(state.selected);
+
+  // Botão "Sem estenose"
+  const noneBtn = document.createElement("button");
+  noneBtn.className = "class-btn";
+  if (!currentData || !currentData.type) noneBtn.classList.add("active");
+  noneBtn.style.color = "#ff00ff";
+  noneBtn.innerHTML = `<span style="display:inline-block; width:12px; height:0; border-bottom: 3px dashed #ff00ff; margin-right:4px; flex-shrink: 0;"></span>Sem estenose 0%`;
+  noneBtn.disabled = state.selected == null;
+  noneBtn.addEventListener("click", () => {
+    if (!state.selected) return;
+    // Preserva lm_tipo se for LM, senão remove tudo
+    if (isLM) {
+      const lmTipoSalvo = state.classified[state.selected] ? state.classified[state.selected].lm_tipo : null;
+      delete state.classified[state.selected];
+      if (lmTipoSalvo) {
+        state.classified[state.selected] = { type: null, lm_tipo: lmTipoSalvo };
+      }
+    } else {
+      delete state.classified[state.selected];
+    }
+    renderHighlights(); renderClassGrid(); renderSummary();
+    document.getElementById("selDesc").textContent = "Sem lesão";
+  });
+  grid.appendChild(noneBtn);
+
+  // Botões de classificação
+  for (const key in CLASSIFICATIONS) {
+    const c = CLASSIFICATIONS[key];
+    const btn = document.createElement("button");
+    btn.className = "class-btn";
+    if (currentData && currentData.type === key) btn.classList.add("active");
+    btn.style.color = c.raw;
+    btn.innerHTML = `<span class="swatch" style="background:${c.raw}"></span>${c.label}`;
+    btn.disabled = state.selected == null;
+    btn.addEventListener("click", () => {
+      if (!state.selected) return;
+      // Preserva lm_tipo se for LM
+      const lmTipoSalvo = isLM && state.classified[state.selected] ? state.classified[state.selected].lm_tipo : null;
+      state.classified[state.selected] = { type: key };
+      if (lmTipoSalvo) state.classified[state.selected].lm_tipo = lmTipoSalvo;
+      renderHighlights(); renderClassGrid(); renderSummary();
+      document.getElementById("selDesc").textContent = `Classificado: ${c.label}`;
+    });
+    grid.appendChild(btn);
+  }
+
+  // ====== Lógica de exibição dos subcampos ======
+  // Primeiro esconde TODOS os subcampos
+  groupPlaca.style.display = 'none';
+  groupExtensao.style.display = 'none';
+  groupHRP.style.display = 'none';
+  groupStent.style.display = 'none';
+  groupStentMorfo.style.display = 'none';
+  groupStentArtefato.style.display = 'none';
+  groupEnxertoTipo.style.display = 'none';
+  groupEnxertoAnastProx.style.display = 'none';
+  groupEnxertoAnastDist.style.display = 'none';
+  groupEnxertoLeito.style.display = 'none';
+  groupNaoInterpretavel.style.display = 'none';
+  groupLMTipo.style.display = 'none';
+
+  if (currentData) {
+    subGroup.style.display = "block";
+
+    // Sempre exibe "Tipo de LM" quando for LM (mesmo sem classificação de lesão)
+    if (isLM) {
+      groupLMTipo.style.display = 'block';
+      lmTipoSelect.value = currentData.lm_tipo || "";
+    }
+
+    if (currentData.type === 'stent') {
+      groupStent.style.display = 'block';
+      groupStentMorfo.style.display = 'block';
+      stentSelect.value = currentData.reestenose || "";
+      stentMorfoSelect.value = currentData.morfologia || "";
+      if (currentData.reestenose === 'stent_nao_interpretavel') {
+        groupStentArtefato.style.display = 'block';
+        stentArtefatoSelect.value = currentData.artefato || "";
+      }
+    } else if (currentData.type === 'enxerto') {
+      groupEnxertoTipo.style.display = 'block';
+      groupEnxertoAnastProx.style.display = 'block';
+      groupEnxertoAnastDist.style.display = 'block';
+      groupEnxertoLeito.style.display = 'block';
+      enxertoTipoSelect.value = currentData.enxerto_tipo || "";
+      enxertoAnastProxInput.checked = !!currentData.anast_prox;
+      enxertoAnastDistInput.checked = !!currentData.anast_dist;
+      enxertoLeitoInput.checked = !!currentData.leito_dist;
+      atualizarCheckboxVisual(enxertoAnastProxRow, enxertoAnastProxInput.checked);
+      atualizarCheckboxVisual(enxertoAnastDistRow, enxertoAnastDistInput.checked);
+      atualizarCheckboxVisual(enxertoLeitoRow, enxertoLeitoInput.checked);
+    } else if (currentData.type === 'naointerpretavel') {
+      groupNaoInterpretavel.style.display = 'block';
+      naoInterpretavelSelect.value = currentData.artefato || "";
+    } else if (currentData.type) {
+      // Lesões usuais (Mínima, Leve, Moderada, Importante, Ocluída)
+      groupPlaca.style.display = 'block';
+      groupExtensao.style.display = 'block';
+      placaSelect.value = currentData.placa || "";
+      extensaoSelect.value = currentData.extensao || "";
+
+      // HRP só aparece para segmentos que NÃO sejam LM
+      if (!isLM) {
+        groupHRP.style.display = 'block';
+        hrpSelect.value = currentData.hrp || "";
+      }
+      // Para LM, groupHRP permanece 'none' (já definido acima)
+    }
+  } else {
+    // Sem classificação
+    if (isLM) {
+      subGroup.style.display = "block";
+      groupLMTipo.style.display = 'block';
+      // Todos os outros campos já estão 'none' (definidos acima)
+      if (!state.classified[state.selected]) {
+        state.classified[state.selected] = { type: null };
+      }
+      lmTipoSelect.value = state.classified[state.selected].lm_tipo || "";
+    } else {
+      subGroup.style.display = "none";
+    }
+  }
+}
+
+function atualizarCheckboxVisual(row, checked) {
+  if (!row) return;
+  const status = row.querySelector('.ck-status');
+  if (checked) {
+    row.classList.add('checked');
+    if (status) status.textContent = 'Presente';
+  } else {
+    row.classList.remove('checked');
+    if (status) status.textContent = 'Ausente';
+  }
+}
+
+// ==============================================================================
+// LISTENERS DOS SUBCAMPOS
+// ==============================================================================
+document.getElementById("lmTipoSelect").addEventListener("change", (e) => {
+  if (state.selected && isLMSegment(state.selected)) {
+    if (!state.classified[state.selected]) {
+      state.classified[state.selected] = { type: null };
+    }
+    state.classified[state.selected].lm_tipo = e.target.value;
+    renderSummary();
+  }
+});
+
+document.getElementById("placaSelect").addEventListener("change", (e) => {
+  if (state.selected && state.classified[state.selected]) {
+    state.classified[state.selected].placa = e.target.value;
+    renderSummary();
+  }
+});
+
+document.getElementById("extensaoSelect").addEventListener("change", (e) => {
+  if (state.selected && state.classified[state.selected]) {
+    state.classified[state.selected].extensao = e.target.value;
+    renderSummary();
+  }
+});
+
+document.getElementById("hrpSelect").addEventListener("change", (e) => {
+  if (state.selected && state.classified[state.selected]) {
+    state.classified[state.selected].hrp = e.target.value;
+    renderSummary();
+  }
+});
+
+document.getElementById("stentSelect").addEventListener("change", (e) => {
+  if (state.selected && state.classified[state.selected]) {
+    state.classified[state.selected].reestenose = e.target.value;
+    state.classified[state.selected].artefato = "";
+    renderClassGrid();
+    renderSummary();
+  }
+});
+
+document.getElementById("stentMorfoSelect").addEventListener("change", (e) => {
+  if (state.selected && state.classified[state.selected]) {
+    state.classified[state.selected].morfologia = e.target.value;
+    renderSummary();
+  }
+});
+
+document.getElementById("stentArtefatoSelect").addEventListener("change", (e) => {
+  if (state.selected && state.classified[state.selected]) {
+    state.classified[state.selected].artefato = e.target.value;
+    renderSummary();
+  }
+});
+
+document.getElementById("enxertoTipoSelect").addEventListener("change", (e) => {
+  if (state.selected && state.classified[state.selected]) {
+    state.classified[state.selected].enxerto_tipo = e.target.value;
+    renderSummary();
+  }
+});
+
+function setupEnxertoCheckbox(rowId, inputId, fieldKey) {
+  const row = document.getElementById(rowId);
+  const input = document.getElementById(inputId);
+  if (!row || !input) return;
+
+  const toggleHandler = (e) => {
+    if (e.target !== input) {
+      input.checked = !input.checked;
+    }
+    if (state.selected && state.classified[state.selected]) {
+      state.classified[state.selected][fieldKey] = input.checked;
+      atualizarCheckboxVisual(row, input.checked);
+      renderSummary();
+    }
+  };
+
+  row.addEventListener("click", toggleHandler);
+  input.addEventListener("change", (e) => {
+    if (state.selected && state.classified[state.selected]) {
+      state.classified[state.selected][fieldKey] = e.target.checked;
+      atualizarCheckboxVisual(row, e.target.checked);
+      renderSummary();
+    }
+  });
+}
+
+setupEnxertoCheckbox("enxertoAnastProxRow", "enxertoAnastProxInput", "anast_prox");
+setupEnxertoCheckbox("enxertoAnastDistRow", "enxertoAnastDistInput", "anast_dist");
+setupEnxertoCheckbox("enxertoLeitoRow", "enxertoLeitoInput", "leito_dist");
+
+document.getElementById("naoInterpretavelSelect").addEventListener("change", (e) => {
+  if (state.selected && state.classified[state.selected]) {
+    state.classified[state.selected].artefato = e.target.value;
+    renderSummary();
+  }
+});
+
+// ==============================================================================
+// CÁLCULO DO SIS
+// ==============================================================================
+function calcularSIS() {
+  let total = 0;
+  const tiposPlaca = ['minima', 'leve', 'moderada', 'grave', 'oclusao'];
+  for (const id in state.classified) {
+    const data = state.classified[id];
+    if (!data || !data.type) continue;
+    if (tiposPlaca.includes(data.type)) {
+      total++;
+    } else if (data.type === 'stent') {
+      if (data.reestenose === 'isr_significativa' || data.reestenose === 'stent_ocluido') {
+        total++;
+      }
+    }
+  }
+
+  let classificacao, cor;
+  if (total === 0) { classificacao = "Ausente"; cor = "#8b949e"; }
+  else if (total <= 2) { classificacao = "Leve"; cor = "#4ade80"; }
+  else if (total <= 4) { classificacao = "Moderada"; cor = "#facc15"; }
+  else if (total <= 7) { classificacao = "Importante"; cor = "#fb923c"; }
+  else { classificacao = "Extensa"; cor = "#ef4444"; }
+  return { total, classificacao, cor };
+}
+
+function atualizarSIS() {
+  const sis = calcularSIS();
+  const elemNumero = document.getElementById("sisNumero");
+  if (elemNumero) { elemNumero.textContent = sis.total; elemNumero.style.color = sis.cor; }
+  const elemSeg = document.getElementById("sisSegmentos");
+  if (elemSeg) { elemSeg.textContent = `${sis.total} ${sis.total === 1 ? "segmento acometido" : "segmentos acometidos"}`; }
+  const elemClass = document.getElementById("sisClassificacao");
+  if (elemClass) { elemClass.textContent = sis.classificacao; elemClass.style.color = sis.cor; }
+}
+
+// ==============================================================================
+// RESUMO DE LESÕES (lista lateral)
+// ==============================================================================
+function renderSummary() {
+  //atualizarResumoAutomatico();
+  atualizarSIS();
+  const list = document.getElementById("summaryList");
+  const ids = Object.keys(state.classified).map(Number)
+    .filter(id => {
+      const d = state.classified[id];
+      return d && (d.type || d.lm_tipo);
+    })
+    .sort((a, b) => a - b);
+
+  if (ids.length === 0) {
+    list.innerHTML = `<div style="text-align:center; color:var(--muted); font-size:14px; padding:20px 0;">Nenhuma lesão identificada.</div>`;
+    return;
+  }
+  const grouped = {};
+  ids.forEach(id => {
+    const seg = SEGMENTS[id];
+    if(!grouped[seg.artery]) grouped[seg.artery] = [];
+    const data = state.classified[id];
+
+    let detalhes = [];
+
+    if (isLMSegment(id) && data.lm_tipo) {
+      detalhes.push(`Tipo: ${LM_TIPOS[data.lm_tipo]}`);
+    }
+
+    if (data.type === 'stent') {
+      if (data.reestenose) detalhes.push(STENT_RESTENOSIS[data.reestenose]);
+      if (data.morfologia) detalhes.push(STENT_MORFOLOGIA[data.morfologia]);
+      if (data.artefato) detalhes.push(`Artefato: ${NAO_INTERPRETAVEL_ARTIFATOS[data.artefato]}`);
+    } else if (data.type === 'enxerto') {
+      if (data.enxerto_tipo) detalhes.push(`Tipo: ${ENXERTO_TIPOS[data.enxerto_tipo]}`);
+      detalhes.push(`Anast. prox: ${data.anast_prox ? 'Presente' : 'Ausente'}`);
+      detalhes.push(`Anast. distal: ${data.anast_dist ? 'Presente' : 'Ausente'}`);
+      detalhes.push(`Leito distal: ${data.leito_dist ? 'Presente' : 'Ausente'}`);
+    } else if (data.type === 'naointerpretavel') {
+      if (data.artefato) detalhes.push(`Artefato: ${NAO_INTERPRETAVEL_ARTIFATOS[data.artefato]}`);
+    } else if (data.type) {
+      if (data.placa) detalhes.push(`Placa: ${PLAQUES[data.placa]}`);
+      if (data.extensao) detalhes.push(`Ext: ${EXTENSAO_LESAO[data.extensao] || data.extensao}`);
+      if (data.hrp) detalhes.push(`HRP: ${HRP_FEATURES[data.hrp]}`);
+    }
+
+    const cls = data.type ? CLASSIFICATIONS[data.type] : { label: "Sem classificação", raw: "#8b949e" };
+
+    grouped[seg.artery].push({ id, ...seg, cls, detalhesTexto: detalhes });
+  });
+
+  list.innerHTML = "";
+  for(const artery in grouped) {
+    const groupDiv = document.createElement("div");
+    groupDiv.className = "summary-group";
+    groupDiv.innerHTML = `<h3>${artery}</h3>`;
+    grouped[artery].forEach(item => {
+      const itemDiv = document.createElement("div");
+      itemDiv.className = "summary-item";
+      itemDiv.style.borderLeftColor = item.cls.raw;
+      const detalhesHtml = item.detalhesTexto.length > 0
+        ? item.detalhesTexto.map(d => `<div style="color:var(--muted);">${d}</div>`).join('')
+        : '';
+      itemDiv.innerHTML = `
+        <span class="num">${item.id}</span>
+        <span class="name">${item.name}</span>
+        <div style="text-align: right; font-size: 12px; line-height: 1.4;">
+          <div style="color:${item.cls.raw}; font-weight: 600; font-size: 13px;">${item.cls.label}</div>
+          ${detalhesHtml}
+        </div>
+      `;
+      itemDiv.addEventListener("click", () => selectSegment(item.id));
+      groupDiv.appendChild(itemDiv);
+    });
+    list.appendChild(groupDiv);
+  }
+}
+
+// ==============================================================================
+// Gera o texto do "Resumo das Lesões" para o laudo
+// ==============================================================================
+function gerarTextoResumoLesoes() {
+  const ids = Object.keys(state.classified).map(Number)
+    .filter(id => {
+      const d = state.classified[id];
+      return d && (d.type || d.lm_tipo);
+    })
+    .sort((a, b) => a - b);
+
+  if (ids.length === 0) {
+    return "Árvore coronariana sem lesões obstrutivas caracterizadas nos segmentos avaliados.";
+  }
+
+  const linhas = ids.map(id => {
+    const seg = SEGMENTS[id];
+    const data = state.classified[id];
+    const partes = [];
+
+    if (isLMSegment(id) && data.lm_tipo) {
+      partes.push(`Segmento ${id} (${seg.artery} — ${seg.name}) — tipo ${LM_TIPOS[data.lm_tipo]}`);
+    } else {
+      partes.push(`Segmento ${id} (${seg.artery} — ${seg.name})`);
+    }
+
+    if (data.type) {
+      const cls = CLASSIFICATIONS[data.type];
+      partes.push(cls.label);
+
+      if (data.type === 'stent') {
+        if (data.reestenose) partes.push(STENT_RESTENOSIS[data.reestenose]);
+        if (data.morfologia) partes.push(`morfologia: ${STENT_MORFOLOGIA[data.morfologia]}`);
+        if (data.artefato) partes.push(`artefato: ${NAO_INTERPRETAVEL_ARTIFATOS[data.artefato]}`);
+      } else if (data.type === 'enxerto') {
+        if (data.enxerto_tipo) partes.push(`tipo: ${ENXERTO_TIPOS[data.enxerto_tipo]}`);
+        partes.push(`anastomose proximal: ${data.anast_prox ? 'presente' : 'ausente'}`);
+        partes.push(`anastomose distal: ${data.anast_dist ? 'presente' : 'ausente'}`);
+        partes.push(`leito distal: ${data.leito_dist ? 'presente' : 'ausente'}`);
+      } else if (data.type === 'naointerpretavel') {
+        if (data.artefato) partes.push(`artefato: ${NAO_INTERPRETAVEL_ARTIFATOS[data.artefato]}`);
+      } else {
+        if (data.placa) partes.push(`placa ${PLAQUES[data.placa].toLowerCase()}`);
+        if (data.extensao) partes.push((EXTENSAO_LESAO[data.extensao] || data.extensao).toLowerCase());
+        if (data.hrp) partes.push(`HRP: ${HRP_FEATURES[data.hrp]}`);
+      }
+    }
+    return partes.join(", ") + ".";
+  });
+
+  const sis = calcularSIS();
+  linhas.push(``);
+  linhas.push(`Carga de placa (SIS — Segment Involvement Score): ${sis.total} ${sis.total === 1 ? "segmento acometido" : "segmentos acometidos"} — classificação: ${sis.classificacao}.`);
+
+  return linhas.join("\n");
+}
+
+function atualizarResumoAutomatico() {
+  const campo = document.getElementById("resumoLesoes");
+  if (campo) campo.value = gerarTextoResumoLesoes();
+}
+
+// ==============================================================================
+// PAYLOAD ANONIMIZADO PARA IA / DOWNLOAD
+// ==============================================================================
+function getAIPayload() {
+  const sis = calcularSIS();
+  return {
+
+    prompt: `Preencha o texto de LM, LAD, LCx e RCA substituindo os campos entre colchetes exclusivamente pelas opções selecionadas. 
+
+	**REGRAS:**
+
+	* Manter exatamente a ordem apresentada.
+	* Inserir somente as opções selecionadas/verdadeiras.
+	* Excluir completamente as opções não selecionadas.
+	* Não alterar a terminologia dos campos.
+	* Não interpretar.
+	* Não resumir.
+	* Não acrescentar informações.
+	* Não repetir informações.
+	* Quando houver mais de uma lesão na LAD, repetir a sequência correspondente para cada lesão, mantendo cada característica associada à sua respectiva lesão.
+	* Se não há informações sobre D1 ou D2 escreva no fim de LAD uma das opções: [D1 e D2: Sem estenoses significativas / D1: Sem estenose significativa / D2: Sem estenose significativa]
+	* Se não há informações sobre OM1 ou OM2 escreva no fim de LCx uma das opções: [OM1 e OM2: Sem estenoses significativas / OM1: Sem estenose significativa / OM2: Sem estenose significativa]
+	* Se não há informações sobre R-PLB ou R-PDA escreva no fim de RCA uma das opções: [R-PLB e R-PDA: Sem estenoses significativas / R-PLB: Sem estenose significativa / R-PDA: Sem estenose significativa]
+	* Se não há informações sobre LM, LAD, LCx ou RCA então considere 'Sem placas evidentes'
+	* Informações presentes nos dados que não tenham campo correspondente neste template devem ser ignoradas em silêncio, sem mencionar que foram omitidas.	
+	* Os achados sobre D1 e D2 devem estar em LAD - os achados de OM1 e OM2 devem estar em LCx - os achados de R PLB e R PDA devem estar em RCA - caso exista os achados de Ramo Intermediário deve estar em LAD
+	
+
+
+	[LM]: [bifurcado/trifurcado/anomalia], [sem placa evidente / placa aterosclerótica], [parcialmente calcificada / calcificada], [focal / segmentar / difusa / múltiplas] com características de [remodelamento positivo / calcificação puntiforme (spotty) / placa de baixa atenuação / sinal do anel de guardanapo (napkin-ring sign)] , determinando estenose [mínima (1%-24%) / leve (25-49%) / moderada (50-69%) / importante (70-99%) / ocluída 100%]. Ou [stent] [sem reestenose / ISR não significativa &lt; 50% / ISR significativa &ge; 50% / Stend ocluído 100% / Não interpretável] Ou [ Não interpretável ]: [Ruído excessivo / Contraste intraluminal subótimo / Movimento corporal / Movimento respiratório / Movimento cardíaco / Transição- Stairstep / Interpolação / Duplicação / Endurecimento do feixe / Artefato metálico / Blooming] ou [Enxerto] [arterial / venoso] 
+
+
+	[LAD]: [sem placa evidente / placa aterosclerótica], [não calcificada / parcialmente calcificada / calcificada], [focal / segmentar / difusa / múltiplas] nos segmentos [proximal / médio / distal] com características de [remodelamento positivo / calcificação puntiforme (spotty) / placa de baixa atenuação / sinal do anel de guardanapo (napkin-ring sign)], determinando estenose [mínima (1%-24%) / leve (25-49%) / moderada (50-69%) / importante (70-99%) / ocluída 100%].  Ou [stent] [sem reestenose / ISR não significativa &lt; 50% / ISR significativa &ge; 50% / Stend ocluído 100% / Não interpretável] Ou [ Não interpretável ]: [Ruído excessivo / Contraste intraluminal subótimo / Movimento corporal / Movimento respiratório / Movimento cardíaco / Transição- Stairstep / Interpolação / Duplicação / Endurecimento do feixe / Artefato metálico / Blooming] ou [Enxerto] [arterial / venoso] 
+
+	Quando houver uma segunda ou mais lesões, repetir para cada lesão:
+
+	[placa aterosclerótica], [não calcificada / parcialmente calcificada / calcificada], [focal / segmentar / difusa / múltiplas] nos segmentos [proximal / médio / distal] com características de [remodelamento positivo / calcificação puntiforme (spotty) / placa de baixa atenuação / sinal do anel de guardanapo (napkin-ring sign)], determinando estenose [mínima (1%-24%) / leve (25-49%) / moderada (50-69%) / importante (70-99%) / ocluída 100%].  Ou [stent] [sem reestenose / ISR não significativa &lt; 50% / ISR significativa &ge; 50% / Stend ocluído 100% / Não interpretável] Ou [ Não interpretável ]: [Ruído excessivo / Contraste intraluminal subótimo / Movimento corporal / Movimento respiratório / Movimento cardíaco / Transição- Stairstep / Interpolação / Duplicação / Endurecimento do feixe / Artefato metálico / Blooming] ou [Enxerto] [arterial / venoso]  
+
+	
+	[LCx]: [sem placa evidente / placa aterosclerótica], [não calcificada / parcialmente calcificada / calcificada], [focal / segmentar / difusa / múltiplas] nos segmentos [proximal / médio / distal] com características de [remodelamento positivo / calcificação puntiforme (spotty) / placa de baixa atenuação / sinal do anel de guardanapo (napkin-ring sign)], determinando estenose [mínima (1%-24%) / leve (25-49%) / moderada (50-69%) / importante (70-99%) / ocluída 100%].  Ou [stent] [sem reestenose / ISR não significativa &lt; 50% / ISR significativa &ge; 50% / Stend ocluído 100% / Não interpretável] Ou [ Não interpretável ]: [Ruído excessivo / Contraste intraluminal subótimo / Movimento corporal / Movimento respiratório / Movimento cardíaco / Transição- Stairstep / Interpolação / Duplicação / Endurecimento do feixe / Artefato metálico / Blooming] ou [Enxerto] [arterial / venoso] 
+
+	Quando houver uma segunda ou mais lesões, repetir para cada lesão:
+
+	[placa aterosclerótica], [não calcificada / parcialmente calcificada / calcificada], [focal / segmentar / difusa / múltiplas] nos segmentos [proximal / médio / distal] com características de [remodelamento positivo / calcificação puntiforme (spotty) / placa de baixa atenuação / sinal do anel de guardanapo (napkin-ring sign)], determinando estenose [mínima (1%-24%) / leve (25-49%) / moderada (50-69%) / importante (70-99%) / ocluída 100%].  Ou [stent] [sem reestenose / ISR não significativa &lt; 50% / ISR significativa &ge; 50% / Stend ocluído 100% / Não interpretável] Ou [ Não interpretável ]: [Ruído excessivo / Contraste intraluminal subótimo / Movimento corporal / Movimento respiratório / Movimento cardíaco / Transição- Stairstep / Interpolação / Duplicação / Endurecimento do feixe / Artefato metálico / Blooming] ou [Enxerto] [arterial / venoso] 
+
+	
+	[RCA]: [sem placa evidente / placa aterosclerótica], [não calcificada / parcialmente calcificada / calcificada], [focal / segmentar / difusa / múltiplas] nos segmentos [proximal / médio / distal] com características de [remodelamento positivo / calcificação puntiforme (spotty) / placa de baixa atenuação / sinal do anel de guardanapo (napkin-ring sign)], determinando estenose [mínima (1%-24%) / leve (25-49%) / moderada (50-69%) / importante (70-99%) / ocluída 100%].  Ou [stent] [sem reestenose / ISR não significativa &lt; 50% / ISR significativa &ge; 50% / Stend ocluído 100% / Não interpretável] Ou [ Não interpretável ]: [Ruído excessivo / Contraste intraluminal subótimo / Movimento corporal / Movimento respiratório / Movimento cardíaco / Transição- Stairstep / Interpolação / Duplicação / Endurecimento do feixe / Artefato metálico / Blooming] ou [Enxerto] [arterial / venoso] 
+
+	Quando houver uma segunda ou mais lesões, repetir para cada lesão:
+
+	[placa aterosclerótica], [não calcificada / parcialmente calcificada / calcificada], [focal / segmentar / difusa / múltiplas] nos segmentos [proximal / médio / distal] com características de [remodelamento positivo / calcificação puntiforme (spotty) / placa de baixa atenuação / sinal do anel de guardanapo (napkin-ring sign)], determinando estenose [mínima (1%-24%) / leve (25-49%) / moderada (50-69%) / importante (70-99%) / ocluída 100%].  Ou [stent] [sem reestenose / ISR não significativa &lt; 50% / ISR significativa &ge; 50% / Stend ocluído 100% / Não interpretável] Ou [ Não interpretável ]: [Ruído excessivo / Contraste intraluminal subótimo / Movimento corporal / Movimento respiratório / Movimento cardíaco / Transição- Stairstep / Interpolação / Duplicação / Endurecimento do feixe / Artefato metálico / Blooming] ou [Enxerto] [arterial / venoso] 
+
+
+	**IMPORTANTE:** não escrever os colchetes, não escrever as opções não selecionadas e não acrescentar qualquer informação além das opções selecionadas.
+	
+	
+	
+	**Conclusão:**
+	
+	- Aterosclerose [minima / leve / moderada / importante / extensa] detectável em [pontuação_sis] segmentos coronarianos 
+	- [artéria/segmento]: estenose [grau]
+
+	`,
+
+
+    lesoes: Object.entries(state.classified).map(([id, data]) => {
+      if (!data) return null;
+      if (!data.type && !data.lm_tipo) return null;
+
+      const isStent = data.type === 'stent';
+      const isEnxerto = data.type === 'enxerto';
+      const isNaoInterp = data.type === 'naointerpretavel';
+
+      const item = {
+        segmento: Number(id),
+        arteria: SEGMENTS[id].artery,
+        nome_anatomico: SEGMENTS[id].name,
+        classificacao_grau: data.type ? CLASSIFICATIONS[data.type].label : "Sem placa evidente"
+      };
+
+      if (isLMSegment(id) && data.lm_tipo) {
+        item.tipo_lm = data.lm_tipo;
+      }
+
+      if (isStent) {
+        item.status_stent = data.reestenose ? STENT_RESTENOSIS[data.reestenose] : null;
+        item.morfologia_isr = data.morfologia ? STENT_MORFOLOGIA[data.morfologia] : null;
+        item.artefato_causador = data.artefato ? NAO_INTERPRETAVEL_ARTIFATOS[data.artefato] : null;
+      } else if (isEnxerto) {
+        item.tipo_enxerto = data.enxerto_tipo ? ENXERTO_TIPOS[data.enxerto_tipo] : null;
+        item.anastomose_proximal = data.anast_prox ? 'Presente' : 'Ausente';
+        item.anastomose_distal = data.anast_dist ? 'Presente' : 'Ausente';
+        item.leito_distal = data.leito_dist ? 'Presente' : 'Ausente';
+      } else if (isNaoInterp) {
+        item.artefato_causador = data.artefato ? NAO_INTERPRETAVEL_ARTIFATOS[data.artefato] : null;
+      } else if (data.type) {
+        item.caracteristica_placa = data.placa ? PLAQUES[data.placa] : null;
+        item.extensao_lesao = data.extensao ? (EXTENSAO_LESAO[data.extensao] || data.extensao) : null;
+        item.hrp = data.hrp ? HRP_FEATURES[data.hrp] : null;
+      }
+
+      return item;
+    }).filter(Boolean),
+    sis: { pontuação_sis: sis.total, classificacao: sis.classificacao }
+  };
+}
+
+document.getElementById("btnSaveKey").addEventListener("click", async () => {
+  const btn = document.getElementById("btnSaveKey");
+  const keyInput = document.getElementById("userApiKey");
+  const key = keyInput.value.trim();
+  if (!key) { alert("Por favor, insira uma chave válida da Anthropic."); return; }
+  btn.textContent = "Salvando..."; btn.disabled = true;
+  try {
+    const response = await fetch(`${API_BASE_URL}/usuarios/api-key`, {
+      method: 'POST', headers: { 'Content-Type': 'application/json' }, body: JSON.stringify({ apiKey: key })
+    });
+    if (!response.ok) throw new Error("Erro no servidor ao salvar a chave");
+    alert("Chave da Anthropic salva com segurança no seu perfil!");
+    keyInput.value = "";
+  } catch (error) {
+    console.error("Erro ao salvar chave:", error);
+    alert("Falha ao conectar com o servidor. Verifique sua conexão.");
+  } finally {
+    btn.textContent = "Salvar Chave no Servidor"; btn.disabled = false;
+  }
+});
+
+document.getElementById("btnGenerateAI").addEventListener("click", async () => {
+  const btn = document.getElementById("btnGenerateAI");
+  const payload = getAIPayload();
+  if (payload.lesoes.length === 0) { alert("Marque ao menos uma lesão na imagem antes de gerar o laudo."); return; }
+  btn.textContent = "Gerando laudo (Claude IA)..."; btn.disabled = true;
+  try {
+    const response = await fetch(`${API_BASE_URL}/ia/gerar-laudo`, {
+      method: 'POST', headers: { 'Content-Type': 'application/json' }, body: JSON.stringify(payload)
+    });
+    if (!response.ok) throw new Error("A IA falhou ao processar a requisição");
+    const result = await response.json();
+    document.getElementById("outrosAchados").value = result.textoLaudo;
+    alert("Texto gerado pelo Claude com sucesso!");
+  } catch (error) {
+    console.error("Erro ao chamar IA:", error);
+    alert("Falha ao gerar laudo. Você já salvou sua chave da Anthropic nas Configurações?");
+  } finally {
+    btn.textContent = "Gerar Laudo com IA"; btn.disabled = false;
+  }
+});
+
+document.getElementById("btnClear").addEventListener("click", () => {
+  if (state.selected) {
+    delete state.classified[state.selected];
+    renderHighlights(); renderClassGrid(); renderSummary();
+    document.getElementById("selDesc").textContent = "Sem lesão";
+  }
+});
+
+document.getElementById("btnClearAll").addEventListener("click", () => {
+  state.classified = {}; state.selected = null;
+  document.getElementById("selBadge").textContent = "—";
+  document.getElementById("selArtery").textContent = "Nenhum segmento";
+  document.getElementById("selDesc").textContent = "Clique sobre um vaso na imagem";
+  renderHighlights(); renderClassGrid(); renderSummary();
+});
+
+document.getElementById("btnExport").addEventListener("click", () => {
+  const payload = getAIPayload();
+  const blob = new Blob([JSON.stringify(payload, null, 2)], {type:"application/json"});
+  const url = URL.createObjectURL(blob);
+  const a = document.createElement("a");
+  a.href = url; a.download = `payload_ia_coronariografia_${Date.now()}.json`; a.click();
+  URL.revokeObjectURL(url);
+});
+
+function prepararSvgParaExport(svgClone) {
+  const hotspots = svgClone.querySelector("#hotspots");
+  if (hotspots) hotspots.remove();
+  svgClone.querySelectorAll("#calibLines path").forEach(p => {
+    p.setAttribute("fill", "none"); p.setAttribute("stroke", "#ff00ff");
+    p.setAttribute("stroke-width", "3"); p.setAttribute("stroke-dasharray", "8 5");
+    p.setAttribute("stroke-linecap", "round"); p.setAttribute("opacity", "0.9");
+  });
+  svgClone.querySelectorAll("#highlights path").forEach(p => {
+    p.setAttribute("fill", "none"); p.setAttribute("stroke-linecap", "round"); p.setAttribute("stroke-width", "18");
+    if (p.style.display === "none") { p.setAttribute("display", "none"); }
+    else { const opacidade = p.classList.contains("classified") ? "0.9" : (p.classList.contains("selected") ? "0.4" : "0"); p.setAttribute("opacity", opacidade); }
+  });
+  svgClone.querySelectorAll("#pins circle").forEach(c => { c.setAttribute("display", "none"); });
+  svgClone.querySelectorAll("#pins text").forEach(t => {
+    t.setAttribute("fill", "#000000"); t.setAttribute("stroke", "rgba(255,255,255,0.9)");
+    t.setAttribute("stroke-width", "3"); t.setAttribute("paint-order", "stroke");
+    t.setAttribute("text-anchor", "middle"); t.setAttribute("dominant-baseline", "middle");
+    t.setAttribute("font-weight", "700"); t.setAttribute("font-size", "18"); t.setAttribute("font-family", "Arial, sans-serif");
+  });
+  svgClone.querySelectorAll("#labels text").forEach(t => {
+    t.setAttribute("fill", "#000000"); t.setAttribute("stroke", "rgba(255,255,255,0.9)");
+    t.setAttribute("stroke-width", "4"); t.setAttribute("paint-order", "stroke");
+    t.setAttribute("text-anchor", "middle"); t.setAttribute("font-weight", "700");
+    t.setAttribute("font-size", "26"); t.setAttribute("font-family", "Arial, sans-serif"); t.setAttribute("letter-spacing", "1");
+  });
+  return svgClone;
+}
+
+function capturarMapaComoDataURL() {
+  return new Promise((resolve, reject) => {
+    const svgEl = document.getElementById("overlay");
+    let clone = svgEl.cloneNode(true);
+    clone = prepararSvgParaExport(clone);
+    clone.setAttribute("width", "2020"); clone.setAttribute("height", "1400");
+    clone.setAttribute("xmlns", "http://www.w3.org/2000/svg");
+    const svgString = new XMLSerializer().serializeToString(clone);
+    const svgBlob = new Blob([svgString], { type: "image/svg+xml;charset=utf-8" });
+    const url = URL.createObjectURL(svgBlob);
+    const img = new Image();
+    img.onload = () => {
+      const canvas = document.createElement("canvas");
+      canvas.width = 2020; canvas.height = 1400;
+      const ctx = canvas.getContext("2d");
+      ctx.drawImage(img, 0, 0, canvas.width, canvas.height);
+      URL.revokeObjectURL(url);
+      resolve(canvas.toDataURL("image/png"));
+    };
+    img.onerror = (e) => { URL.revokeObjectURL(url); reject(e); };
+    img.src = url;
+  });
+}
+
+function dataURLParaBytes(dataURL) {
+  const base64 = dataURL.split(",")[1];
+  const binario = atob(base64);
+  const bytes = new Uint8Array(binario.length);
+  for (let i = 0; i < binario.length; i++) bytes[i] = binario.charCodeAt(i);
+  return bytes;
+}
+
+async function exportarLaudoWord() {
+  const { Document, Packer, Paragraph, TextRun, AlignmentType, ImageRun } = docx;
+  const nome = document.getElementById("patientName").value || "—";
+  const idade = document.getElementById("patientAge").value || "—";
+  const dataExameRaw = document.getElementById("examDate").value;
+  const dataExame = dataExameRaw ? new Date(dataExameRaw + "T00:00:00").toLocaleDateString("pt-BR") : "—";
+  const tecnica = document.getElementById("tecnica").value || "";
+  const qualidadeTexto = gerarTextoQualidade();
+  const resumoLesoes = document.getElementById("resumoLesoes").value || "";
+  const outrosAchados = document.getElementById("outrosAchados").value || "Sem outros achados relevantes.";
+  const conclusao = document.getElementById("conclusao").value || "";
+
+  let imagemBytes = null;
+  try { const dataUrl = await capturarMapaComoDataURL(); imagemBytes = dataURLParaBytes(dataUrl); }
+  catch (e) { console.warn("Não foi possível capturar a imagem do mapa coronariano:", e); }
+
+  const linhaVazia = () => new Paragraph({ text: "" });
+  const paragrafosMultilinha = (texto) =>
+    texto.split("\n").map(linha => new Paragraph({ children: [ new TextRun({ text: linha, size: 22 }) ], spacing: { after: 90 } }));
+
+  const doc = new Document({
+    sections: [{
+      properties: { page: { margin: { top: 700, bottom: 700, left: 900, right: 900 } } },
+      children: [
+        new Paragraph({ children: [ new TextRun({ text: "LAUDO DE ANGIOTOMOGRAFIA DAS ARTÉRIAS CORONARIANAS", bold: true, font: "Times New Roman", size: 26, color: "000000" }) ], alignment: AlignmentType.CENTER, spacing: { after: 60 } }),
+        new Paragraph({ children: [ new TextRun({ text: "Classificação SCCT 18 Segmentos", font: "Times New Roman", size: 20, color: "000000" }) ], alignment: AlignmentType.CENTER, spacing: { after: 220 } }),
+        linhaVazia(),
+        new Paragraph({ children: [ new TextRun({ text: "Paciente: ", bold: true, size: 20 }), new TextRun({ text: `${nome}    `, size: 20 }), new TextRun({ text: "Idade: ", bold: true, size: 20 }), new TextRun({ text: `${idade}    `, size: 20 }), new TextRun({ text: "Data do Exame: ", bold: true, size: 20 }), new TextRun({ text: dataExame, size: 20 }) ], spacing: { after: 220 } }),
+        linhaVazia(),
+        new Paragraph({ children: [ new TextRun({ text: "ANGIOTOMOGRAFIA (COM CONTRASTE)", bold: true, size: 26 }) ], spacing: { before: 100, after: 140 } }),
+        new Paragraph({ children: [ new TextRun({ text: "Técnica:", bold: true, size: 22 }) ], spacing: { after: 110 } }),
+        ...paragrafosMultilinha(tecnica || " "),
+        linhaVazia(),
+        new Paragraph({ children: [ new TextRun({ text: `Qualidade/confiabilidade: ${qualidadeTexto}`, size: 22 }) ], spacing: { after: 180 } }),
+        linhaVazia(),
+        ...(imagemBytes ? [
+          new Paragraph({ children: [ new ImageRun({ data: imagemBytes, transformation: { width: 400, height: 277 } }) ], alignment: AlignmentType.CENTER, spacing: { after: 60 } }),
+          new Paragraph({ children: [ new TextRun({ text: "Mapa coronariano — Classificação SCCT 18 Segmentos", italics: true, size: 14, color: "555555" }) ], alignment: AlignmentType.CENTER, spacing: { after: 220 } })
+        ] : []),
+        linhaVazia(),
+        ...paragrafosMultilinha(resumoLesoes),
+        linhaVazia(),
+        new Paragraph({ children: [ new TextRun({ text: "Outros achados:", bold: true, size: 22 }) ], spacing: { before: 160, after: 90 } }),
+        ...paragrafosMultilinha(outrosAchados),
+        linhaVazia(),
+        new Paragraph({ children: [ new TextRun({ text: "CONCLUSÃO:", bold: true, size: 22 }) ], spacing: { before: 160, after: 90 } }),
+        ...paragrafosMultilinha(conclusao || " "),
+        linhaVazia(),
+        new Paragraph({ children: [ new TextRun({ text: "*Estenose (redução luminal): mínima/irregularidades (1-24%), discreta (25-49%), moderada (50-69%) e importante (70-99%). *Estenose significativa quando > 50%.", italics: true, size: 14, color: "555555" }) ], spacing: { before: 220, after: 60 } }),
+        new Paragraph({ children: [ new TextRun({ text: "*TCE: tronco da coronária esquerda; DA: descendente anterior; Dg: diagonais; RI: ramo intermédio; Cx: circunflexa; MgE: marginais esquerdos; CD: coronária direita; DP: descendente posterior; VP: ventricular posterior.", italics: true, size: 14, color: "555555" }) ] }),
+        new Paragraph({ children: [ new TextRun({ text: "*SIS (Segment Involvement Score): 0 = Ausente; 1–2 = Leve; 3–4 = Moderada; 5–7 = Importante; ≥8 = Extensa.", italics: true, size: 14, color: "555555" }) ], spacing: { before: 60 } }),
+        new Paragraph({ text: "_______________________________________", alignment: AlignmentType.CENTER, spacing: { before: 400 } }),
+        new Paragraph({ children: [ new TextRun({ text: document.getElementById("doctorName").value.trim() || "Dr(a). Nome do Médico", bold: true, size: 20 }) ], alignment: AlignmentType.CENTER }),
+        new Paragraph({ children: [ new TextRun({ text: "Médico Cardiologista", size: 18 }) ], alignment: AlignmentType.CENTER })
+      ]
+    }]
+  });
+
+  const blob = await Packer.toBlob(doc);
+  const url = URL.createObjectURL(blob);
+  const a = document.createElement("a");
+  const nomeArquivo = `laudo_angiotomografia_${(nome !== "—" ? nome.replace(/\s+/g, "_") : "paciente")}_${Date.now()}.docx`;
+  a.href = url; a.download = nomeArquivo; a.click();
+  URL.revokeObjectURL(url);
+}
+
+document.getElementById("btnExportWord").addEventListener("click", async () => {
+  const btn = document.getElementById("btnExportWord");
+  if (typeof docx === "undefined" || !docx.Document) {
+    alert("A biblioteca de geração de Word (docx.js) não carregou. Verifique sua conexão com a internet e recarregue a página.");
+    return;
+  }
+  btn.textContent = "Gerando Word..."; btn.disabled = true;
+  try { await exportarLaudoWord(); }
+  catch (error) { console.error("Erro ao exportar Word:", error); alert("Falha ao gerar o arquivo Word: " + error.message); }
+  finally { btn.textContent = "Exportar Word (.docx)"; btn.disabled = false; }
+});
+
+buildSegments();
+renderClassGrid();
+renderSummary();
+atualizarSIS();
+</script>
+</body>
+</html>
