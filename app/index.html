@@ -49,10 +49,30 @@
 
   .panel{ grid-area: panel; display: flex; flex-direction: column; gap: 16px; }
 
-  .tab-header{ display: flex; gap: 8px; }
+  .tab-header{ display: flex; gap: 8px; align-items: stretch; }
   .tab-btn{ flex: 1; background: var(--panel); border: 1px solid var(--border); color: var(--muted); padding: 14px; border-radius: 8px; cursor: pointer; font-size: 16px; font-weight: 600; transition: all 0.2s; }
   .tab-btn:hover{ border-color: var(--accent); color: var(--text); }
   .tab-btn.active{ background: var(--accent); color: #000; border-color: var(--accent); }
+
+  /* Botão de Ajuda/Atalhos */
+  .help-btn-tab {
+    background: var(--panel);
+    border: 1px solid var(--border);
+    color: var(--muted);
+    width: 48px;
+    border-radius: 8px;
+    cursor: pointer;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    transition: all 0.2s;
+    flex-shrink: 0;
+  }
+  .help-btn-tab:hover {
+    border-color: var(--accent);
+    color: var(--accent);
+  }
+  .help-btn-tab svg { width: 22px; height: 22px; }
 
   .tab-content{ display: none; flex-direction: column; gap: 16px; }
   .tab-content.active{ display: flex; }
@@ -66,7 +86,7 @@
   .selected-meta .sub{ font-size: 14px; color: var(--muted); margin-top: 4px; }
 
   .class-grid{ display: grid; grid-template-columns: 1fr 1fr; gap: 10px; margin-top: 16px; }
-  .class-btn{ background: var(--panel-2); border: 1px solid var(--border); color: var(--text); padding: 14px 10px; border-radius: 8px; cursor: pointer; font-size: 14px; display: flex; align-items: center; gap: 10px; text-align: left; }
+  .class-btn{ background: var(--panel-2); border: 1px solid var(--border); color: var(--text); padding: 14px 10px; border-radius: 8px; cursor: pointer; font-size: 14px; display: flex; align-items: center; gap: 10px; text-align: left; position: relative; }
   .class-btn:hover{ border-color: var(--accent); }
   .class-btn.active{ border-color: currentColor; background: #1f2738; }
   .swatch{ width: 16px; height: 16px; border-radius: 4px; flex-shrink: 0; }
@@ -105,8 +125,14 @@
 
   .input-group{ margin-bottom: 16px; }
   .input-group label{ display: block; font-size: 13px; color: var(--muted); margin-bottom: 8px; text-transform: uppercase; font-weight: 600; }
-  .input-group input, .input-group select{ width: 100%; padding: 12px; border: 1px solid var(--border); border-radius: 6px; background: var(--panel-2); font-size: 16px; color: var(--text); transition: border-color 0.2s; }
+  .input-group input, .input-group select{ width: 100%; padding: 12px; border: 1px solid var(--border); border-radius: 6px; background: var(--panel-2); font-size: 16px; color: var(--text); transition: all 0.2s; }
   .input-group input:focus, .input-group select:focus{ outline: none; border-color: var(--accent); }
+
+  /* Classe para destacar qual select está ativo para a navegação por setas */
+  .input-group select.active-select {
+    border-color: var(--accent);
+    box-shadow: 0 0 0 2px rgba(88, 166, 255, 0.25);
+  }
 
   #patientAge::-webkit-inner-spin-button,
   #patientAge::-webkit-outer-spin-button { -webkit-appearance: none; margin: 0; }
@@ -152,6 +178,35 @@
   .footer-social a:hover { color: var(--accent); }
   .footer-social svg { width: 20px; height: 20px; fill: currentColor; }
 
+  /* Atalhos - Estilo do Badge */
+  .kbd {
+    display: inline-block;
+    background: rgba(255,255,255,0.08);
+    border: 1px solid var(--border);
+    border-radius: 4px;
+    padding: 1px 6px;
+    font-size: 11px;
+    color: var(--muted);
+    margin-left: auto;
+    font-family: monospace;
+    font-weight: 700;
+  }
+  .class-btn .kbd { margin-left: auto; }
+  .checkbox-row .kbd { margin-left: 8px; background: var(--bg); }
+
+  /* Atalhos - Modal de Ajuda */
+  .help-modal { display: none; position: fixed; top:0; left:0; width:100%; height:100%; background:rgba(0,0,0,0.7); z-index: 2000; justify-content: center; align-items: center; }
+  .help-content { background: var(--panel); border: 1px solid var(--border); border-radius: 12px; padding: 32px; max-width: 900px; width: 90%; max-height: 85vh; overflow-y: auto; box-shadow: 0 10px 40px rgba(0,0,0,0.5); }
+  .help-header { display: flex; justify-content: space-between; align-items: center; border-bottom: 1px solid var(--border); margin-bottom: 24px; padding-bottom: 16px; }
+  .help-header h2 { font-size: 24px; color: var(--text); }
+  .help-close { background: none; border: none; color: var(--muted); font-size: 32px; cursor: pointer; line-height: 1; }
+  .help-close:hover { color: var(--text); }
+  .help-grid { display: grid; grid-template-columns: repeat(auto-fit, minmax(280px, 1fr)); gap: 24px; }
+  .help-section h3 { color: var(--accent); font-size: 16px; text-transform: uppercase; letter-spacing: 0.5px; margin-bottom: 12px; border-bottom: 1px solid var(--border); padding-bottom: 8px; }
+  .help-item { display: flex; align-items: center; padding: 6px 0; font-size: 14px; color: var(--text); }
+  .help-item .keys { display: flex; gap: 4px; margin-right: 12px; min-width: 120px; }
+  .help-item .keys .kbd { margin-left: 0; background: var(--panel-2); border-color: var(--border); }
+
   @media (max-width: 1024px) {
     .app{ grid-template-columns: 1fr; grid-template-areas: "stage" "panel" "report" "footer"; }
     .app-footer { flex-direction: column; text-align: center; }
@@ -166,7 +221,7 @@
 
   @media print {
     @page{ size: A4 portrait; margin: 15mm; }
-    .panel, .stage-header, .actions, .actions-row, .seg-hot, .seg-pin-bg, .seg-pin, .btn, .logo-marca, .app-footer{ display: none !important; }
+    .panel, .stage-header, .actions, .actions-row, .seg-hot, .seg-pin-bg, .seg-pin, .btn, .logo-marca, .app-footer, .help-modal, .kbd, .help-btn-tab{ display: none !important; }
     body, html{ background: #fff !important; color: #000 !important; }
     .app{ display: block !important; max-width: 100% !important; padding: 0 !important; margin: 0 !important; }
     .stage{ background: #fff !important; border: none !important; padding: 0 !important; margin-bottom: 20px !important; }
@@ -191,7 +246,7 @@
   <div class="stage">
     <div class="stage-header">
       <h1>Mapa Coronariano — SCCT 18 Segmentos</h1>
-      <span class="hint">Clique no vaso para classificar</span>
+      <span class="hint">Clique no vaso ou use atalhos de teclado <span class="kbd">?</span></span>
     </div>
     <div class="canvas-wrap" id="canvasWrap">
       <img src="logo.png" alt="Logomarca" class="logo-marca">
@@ -205,6 +260,13 @@
     <div class="tab-header">
       <button class="tab-btn active" data-tab="tab-lesoes">Lesões</button>
       <button class="tab-btn" data-tab="tab-config">Configurações</button>
+      
+      <button class="help-btn-tab" id="btnOpenHelp" title="Ver Atalhos de Teclado">
+        <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
+          <rect x="2" y="6" width="20" height="12" rx="2" ry="2"></rect>
+          <path d="M6 10h.01M10 10h.01M14 10h.01M18 10h.01M6 14h.01M18 14h.01M8 14h8"></path>
+        </svg>
+      </button>
     </div>
 
     <div class="tab-content active" id="tab-lesoes">
@@ -226,9 +288,9 @@
             <label>Tipo de Tronco (LM)</label>
             <select id="lmTipoSelect">
               <option value="">Selecione...</option>
-              <option value="bifurcada">⑂ Bifurcada</option>
-              <option value="trifurcada">⑈ Trifurcada</option>
-              <option value="anomalia">⚠ Anomalia</option>
+              <option value="bifurcada">⑂ Bifurcada (B)</option>
+              <option value="trifurcada">⑈ Trifurcada (T)</option>
+              <option value="anomalia">⚠ Anomalia (A)</option>
             </select>
           </div>
 
@@ -236,9 +298,9 @@
             <label>Placa</label>
             <select id="placaSelect">
               <option value="">Selecione...</option>
-              <option value="nao_calcificada">○ Não calcificada</option>
-              <option value="pred_nao_calcificada">◐ Parcialmente calcificada</option>
-              <option value="pred_calcificada">● Calcificada</option>
+              <option value="nao_calcificada">○ Não calcificada (1)</option>
+              <option value="pred_nao_calcificada">◐ Parcialmente calcificada (2)</option>
+              <option value="pred_calcificada">● Calcificada (3)</option>
             </select>
           </div>
 
@@ -246,10 +308,10 @@
             <label>Extensão da Lesão</label>
             <select id="extensaoSelect">
               <option value="">Selecione...</option>
-              <option value="focal">○ Lesão Focal</option>
-              <option value="segmentar">●──● Lesão Segmentar</option>
-              <option value="difusa">●────● Lesão Difusa</option>
-              <option value="multiplas">● ● Lesões Múltiplas</option>
+              <option value="focal">○ Lesão Focal (F)</option>
+              <option value="segmentar">●──● Lesão Segmentar (S)</option>
+              <option value="difusa">●────● Lesão Difusa (D)</option>
+              <option value="multiplas">● ● Lesões Múltiplas (U)</option>
             </select>
           </div>
 
@@ -257,10 +319,10 @@
             <label>Características de Placa de alto risco (HRP)</label>
             <select id="hrpSelect">
               <option value="">Selecione...</option>
-              <option value="remodelamento"> ↗ Remodelamento positivo</option>
-              <option value="puntiforme"> • Calcificação puntiforme (spotty)</option>
-              <option value="baixaatenuacao"> ▱ Placa de baixa atenuação</option>
-              <option value="guardanapo">◉ Sinal do anel de guardanapo (napkin-ring sign)</option>
+              <option value="remodelamento"> ↗ Remodelamento positivo (R)</option>
+              <option value="puntiforme"> • Calcificação puntiforme (spotty) (P)</option>
+              <option value="baixaatenuacao"> ▱ Placa de baixa atenuação (B)</option>
+              <option value="guardanapo">◉ Sinal do anel de guardanapo (napkin-ring sign) (G)</option>
             </select>
           </div>
 
@@ -268,11 +330,11 @@
             <label>Reestenose intra-stent (ISR)</label>
             <select id="stentSelect">
               <option value="">Selecione...</option>
-              <option value="sem_reestenose">✓ Sem reestenose</option>
-              <option value="isr_nao_significativa">ISR Não significativa — &lt;50%</option>
-              <option value="isr_significativa">ISR Significativa — ≥50%</option>
-              <option value="stent_ocluido">Stent ocluído — 100%</option>
-              <option value="stent_nao_interpretavel">Não interpretável</option>
+              <option value="sem_reestenose">✓ Sem reestenose (1)</option>
+              <option value="isr_nao_significativa">ISR Não significativa — &lt;50% (2)</option>
+              <option value="isr_significativa">ISR Significativa — ≥50% (3)</option>
+              <option value="stent_ocluido">Stent ocluído — 100% (4)</option>
+              <option value="stent_nao_interpretavel">Não interpretável (5)</option>
             </select>
           </div>
 
@@ -280,11 +342,11 @@
             <label>Classificação morfológica</label>
             <select id="stentMorfoSelect">
               <option value="">Selecione...</option>
-              <option value="focal">Focal</option>
-              <option value="difusa">Difusa</option>
-              <option value="difusa_confinada">Difusa &gt; 10 mm, confinada ao stent</option>
-              <option value="difusa_proliferativa">Difusa/proliferativa &gt; 10 mm, além das bordas</option>
-              <option value="oclusao_total">Oclusão total</option>
+              <option value="focal">Focal (F)</option>
+              <option value="difusa">Difusa (D)</option>
+              <option value="difusa_confinada">Difusa &gt; 10 mm, confinada ao stent (C)</option>
+              <option value="difusa_proliferativa">Difusa/proliferativa &gt; 10 mm, além das bordas (P)</option>
+              <option value="oclusao_total">Oclusão total (O)</option>
             </select>
           </div>
 
@@ -292,17 +354,17 @@
             <label>Artefato causador</label>
             <select id="stentArtefatoSelect">
               <option value="">Selecione...</option>
-              <option value="ruido_excessivo">Ruído excessivo</option>
-              <option value="contraste_subotimo">Contraste intraluminal subótimo</option>
-              <option value="movimento_corporal">Movimento corporal</option>
-              <option value="movimento_respiratorio">Movimento respiratório</option>
-              <option value="movimento_cardiaco">Movimento cardíaco</option>
-              <option value="transicao_stairstep">Transição / stairstep</option>
-              <option value="interpolacao">Interpolação</option>
-              <option value="duplicacao">Duplicação</option>
-              <option value="endurecimento_feixe">Endurecimento do feixe</option>
-              <option value="artefato_metalico">Artefato metálico</option>
-              <option value="blooming">Blooming</option>
+              <option value="ruido_excessivo">Ruído excessivo (1)</option>
+              <option value="contraste_subotimo">Contraste intraluminal subótimo (2)</option>
+              <option value="movimento_corporal">Movimento corporal (3)</option>
+              <option value="movimento_respiratorio">Movimento respiratório (4)</option>
+              <option value="movimento_cardiaco">Movimento cardíaco (5)</option>
+              <option value="transicao_stairstep">Transição / stairstep (6)</option>
+              <option value="interpolacao">Interpolação (7)</option>
+              <option value="duplicacao">Duplicação (8)</option>
+              <option value="endurecimento_feixe">Endurecimento do feixe (9)</option>
+              <option value="artefato_metalico">Artefato metálico (0)</option>
+              <option value="blooming">Blooming (-)</option>
             </select>
           </div>
 
@@ -310,8 +372,8 @@
             <label>Tipo de Enxerto</label>
             <select id="enxertoTipoSelect">
               <option value="">Selecione...</option>
-              <option value="arterial">Arterial</option>
-              <option value="venoso">Venoso</option>
+              <option value="arterial">Arterial (A)</option>
+              <option value="venoso">Venoso (V)</option>
             </select>
           </div>
 
@@ -320,6 +382,7 @@
             <div class="checkbox-row" id="enxertoAnastProxRow">
               <input type="checkbox" id="enxertoAnastProxInput">
               <span class="ck-label">Anastomose proximal</span>
+              <span class="kbd">1</span>
               <span class="ck-status">Ausente</span>
             </div>
           </div>
@@ -329,6 +392,7 @@
             <div class="checkbox-row" id="enxertoAnastDistRow">
               <input type="checkbox" id="enxertoAnastDistInput">
               <span class="ck-label">Anastomose distal</span>
+              <span class="kbd">2</span>
               <span class="ck-status">Ausente</span>
             </div>
           </div>
@@ -338,6 +402,7 @@
             <div class="checkbox-row" id="enxertoLeitoRow">
               <input type="checkbox" id="enxertoLeitoInput">
               <span class="ck-label">Leito distal</span>
+              <span class="kbd">3</span>
               <span class="ck-status">Ausente</span>
             </div>
           </div>
@@ -346,24 +411,24 @@
             <label>Artefato causador</label>
             <select id="naoInterpretavelSelect">
               <option value="">Selecione...</option>
-              <option value="ruido_excessivo">Ruído excessivo</option>
-              <option value="contraste_subotimo">Contraste intraluminal subótimo</option>
-              <option value="movimento_corporal">Movimento corporal</option>
-              <option value="movimento_respiratorio">Movimento respiratório</option>
-              <option value="movimento_cardiaco">Movimento cardíaco</option>
-              <option value="transicao_stairstep">Transição / stairstep</option>
-              <option value="interpolacao">Interpolação</option>
-              <option value="duplicacao">Duplicação</option>
-              <option value="endurecimento_feixe">Endurecimento do feixe</option>
-              <option value="artefato_metalico">Artefato metálico</option>
-              <option value="blooming">Blooming</option>
+              <option value="ruido_excessivo">Ruído excessivo (1)</option>
+              <option value="contraste_subotimo">Contraste intraluminal subótimo (2)</option>
+              <option value="movimento_corporal">Movimento corporal (3)</option>
+              <option value="movimento_respiratorio">Movimento respiratório (4)</option>
+              <option value="movimento_cardiaco">Movimento cardíaco (5)</option>
+              <option value="transicao_stairstep">Transição / stairstep (6)</option>
+              <option value="interpolacao">Interpolação (7)</option>
+              <option value="duplicacao">Duplicação (8)</option>
+              <option value="endurecimento_feixe">Endurecimento do feixe (9)</option>
+              <option value="artefato_metalico">Artefato metálico (0)</option>
+              <option value="blooming">Blooming (-)</option>
             </select>
           </div>
         </div>
 
         <div class="actions">
-          <button class="btn danger" id="btnClear">Remover Lesão</button>
-          <button class="btn" id="btnExport">Baixar JSON IA</button>
+          <button class="btn danger" id="btnClear">Remover Lesão <span class="kbd">Del</span></button>
+          <button class="btn" id="btnExport">Baixar JSON IA <span class="kbd">Ctrl+J</span></button>
         </div>
       </div>
 
@@ -473,9 +538,9 @@
     </div>
 
     <div class="actions-row">
-      <button class="btn danger" id="btnClearAll">Limpar Tudo</button>
-      <button class="btn" id="btnGenerateAI">Gerar Laudo com IA</button>
-      <button class="btn primary" id="btnExportWord">Exportar Word (.docx)</button>
+      <button class="btn danger" id="btnClearAll">Limpar Tudo <span class="kbd">Ctrl+Shift+L</span></button>
+      <button class="btn" id="btnGenerateAI">Gerar Laudo com IA <span class="kbd">Ctrl+G</span></button>
+      <button class="btn primary" id="btnExportWord">Exportar Word (.docx) <span class="kbd">Ctrl+Shift+E</span></button>
     </div>
   </div>
 
@@ -496,6 +561,66 @@
     </div>
   </footer>
 
+</div>
+
+<!-- Modal de Ajuda de Atalhos -->
+<div id="helpModal" class="help-modal">
+  <div class="help-content">
+    <div class="help-header">
+      <h2>Atalhos de Teclado</h2>
+      <button class="help-close" id="btnCloseHelp">&times;</button>
+    </div>
+    <div class="help-grid">
+      <div class="help-section">
+        <h3>Seleção de Segmentos</h3>
+        <div class="help-item"><div class="keys"><span class="kbd">0</span> a <span class="kbd">9</span></div> Segmentos 0 a 9</div>
+        <div class="help-item"><div class="keys"><span class="kbd">Shift</span>+<span class="kbd">0..8</span></div> Segmentos 10 a 18</div>
+        <div class="help-item"><div class="keys"><span class="kbd">↑</span> / <span class="kbd">↓</span></div> Navegar entre os menus (Placa, Extensão...)</div>
+        <div class="help-item"><div class="keys"><span class="kbd">←</span> / <span class="kbd">→</span></div> Navegar opções do menu ativo</div>
+        <div class="help-item"><div class="keys"><span class="kbd">Esc</span></div> Desselecionar segmento</div>
+      </div>
+
+      <div class="help-section">
+        <h3>Classificações Principais</h3>
+        <div class="help-item"><div class="keys"><span class="kbd">N</span></div> Sem estenose</div>
+        <div class="help-item"><div class="keys"><span class="kbd">M</span></div> Mínima (1-24%)</div>
+        <div class="help-item"><div class="keys"><span class="kbd">D</span></div> Discreta (25-49%)</div>
+        <div class="help-item"><div class="keys"><span class="kbd">O</span></div> Moderada (50-69%)</div>
+        <div class="help-item"><div class="keys"><span class="kbd">I</span></div> Importante (70-99%)</div>
+        <div class="help-item"><div class="keys"><span class="kbd">C</span></div> Ocluída (100%)</div>
+        <div class="help-item"><div class="keys"><span class="kbd">S</span></div> Stent</div>
+        <div class="help-item"><div class="keys"><span class="kbd">E</span></div> Enxerto</div>
+        <div class="help-item"><div class="keys"><span class="kbd">X</span></div> Não Interpretável</div>
+      </div>
+
+      <div class="help-section">
+        <h3>Subcampos Dinâmicos</h3>
+        <div class="help-item"><div class="keys"><span class="kbd">B</span>/<span class="kbd">T</span>/<span class="kbd">A</span></div> LM Tipo (Bi/Tri/Anomalia)</div>
+        <div class="help-item"><div class="keys"><span class="kbd">1</span>/<span class="kbd">2</span>/<span class="kbd">3</span></div> Placa (Não calcif/Parcial/Calcif)</div>
+        <div class="help-item"><div class="keys"><span class="kbd">F</span>/<span class="kbd">S</span>/<span class="kbd">D</span>/<span class="kbd">U</span></div> Extensão (Focal/Seg/Dif/Múltiplas)</div>
+        <div class="help-item"><div class="keys"><span class="kbd">R</span>/<span class="kbd">P</span>/<span class="kbd">B</span>/<span class="kbd">G</span></div> HRP (Rem/Punt/Baixa/Guardanapo)</div>
+      </div>
+
+      <div class="help-section">
+        <h3>Stent e Enxertos</h3>
+        <div class="help-item"><div class="keys"><span class="kbd">1</span> a <span class="kbd">5</span></div> Stent ISR (Sem/NãoSig/Sig/Ocl/NãoInt)</div>
+        <div class="help-item"><div class="keys"><span class="kbd">F</span>/<span class="kbd">D</span>/<span class="kbd">C</span>/<span class="kbd">P</span>/<span class="kbd">O</span></div> Stent Morfologia</div>
+        <div class="help-item"><div class="keys"><span class="kbd">A</span>/<span class="kbd">V</span></div> Enxerto (Arterial/Venoso)</div>
+        <div class="help-item"><div class="keys"><span class="kbd">1</span>/<span class="kbd">2</span>/<span class="kbd">3</span></div> Enxerto Checks (Prox/Distal/Leito)</div>
+        <div class="help-item"><div class="keys"><span class="kbd">1</span> a <span class="kbd">9</span>, <span class="kbd">0</span>, <span class="kbd">-</span></div> Artefatos (11 opções)</div>
+      </div>
+
+      <div class="help-section">
+        <h3>Ações Globais</h3>
+        <div class="help-item"><div class="keys"><span class="kbd">Del</span> / <span class="kbd">Back</span></div> Remover Lesão do segmento</div>
+        <div class="help-item"><div class="keys"><span class="kbd">Ctrl</span>+<span class="kbd">J</span></div> Baixar JSON IA</div>
+        <div class="help-item"><div class="keys"><span class="kbd">Ctrl</span>+<span class="kbd">G</span></div> Gerar Laudo com IA</div>
+        <div class="help-item"><div class="keys"><span class="kbd">Ctrl</span>+<span class="kbd">Shift</span>+<span class="kbd">E</span></div> Exportar Word (.docx)</div>
+        <div class="help-item"><div class="keys"><span class="kbd">Ctrl</span>+<span class="kbd">Shift</span>+<span class="kbd">L</span></div> Limpar Tudo</div>
+        <div class="help-item"><div class="keys"><span class="kbd">?</span></div> Abrir/Fecha este painel de ajuda</div>
+      </div>
+    </div>
+  </div>
 </div>
 
 <script>
@@ -530,14 +655,14 @@ const ARTERY_LABELS = [
 ];
 
 const CLASSIFICATIONS = {
-  minima:   { label: "Mínima 1-24%",            raw: "#22d3ee" },
-  discreta: { label: "Discreta 25-49%",         raw: "#4ade80" },
-  moderada: { label: "Moderada 50-69%",         raw: "#facc15" },
-  grave:    { label: "Importante 70-99%",       raw: "#fb923c" },
-  oclusao:  { label: "Ocluída 100%",            raw: "#ef4444" },
-  stent:    { label: "Stent",                   raw: "#c084fc" },
-  enxerto:  { label: "Enxerto",                 raw: "#9ca3af" },
-  naointerpretavel:  { label: "Não Interpretável", raw: "#c4a484" }
+  minima:   { label: "Mínima 1-24%",            raw: "#22d3ee", shortcut: 'M' },
+  discreta: { label: "Discreta 25-49%",         raw: "#4ade80", shortcut: 'D' },
+  moderada: { label: "Moderada 50-69%",         raw: "#facc15", shortcut: 'O' },
+  grave:    { label: "Importante 70-99%",       raw: "#fb923c", shortcut: 'I' },
+  oclusao:  { label: "Ocluída 100%",            raw: "#ef4444", shortcut: 'C' },
+  stent:    { label: "Stent",                   raw: "#c084fc", shortcut: 'S' },
+  enxerto:  { label: "Enxerto",                 raw: "#9ca3af", shortcut: 'E' },
+  naointerpretavel:  { label: "Não Interpretável", raw: "#c4a484", shortcut: 'X' }
 };
 
 const PLAQUES = {
@@ -601,16 +726,14 @@ const NAO_INTERPRETAVEL_ARTIFATOS = {
   blooming: "Blooming"
 };
 
-// Manter EXTENSIONS para compatibilidade com código existente
 const EXTENSIONS = HRP_FEATURES;
-
 const LM_SEGMENT_ID = 5;
 
 function isLMSegment(id) {
   return Number(id) === LM_SEGMENT_ID;
 }
 
-const state = { selected: null, classified: {} };
+const state = { selected: null, classified: {}, helpOpen: false, activeSelect: null };
 const SVG_NS = "http://www.w3.org/2000/svg";
 
 document.getElementById("currentYear").textContent = new Date().getFullYear();
@@ -633,24 +756,17 @@ function buildSegments() {
 
   ARTERY_LABELS.forEach(l => {
     const txt = document.createElementNS(SVG_NS, "text");
-
     txt.setAttribute("x", l.x);
     txt.setAttribute("y", l.y);
     txt.setAttribute("class", "artery-label");
-
-    // Texto principal
     txt.appendChild(document.createTextNode(l.text));
-
-    // Subscrito
     if (l.sub) {
       const sub = document.createElementNS(SVG_NS, "tspan");
       sub.setAttribute("font-size", "70%");
       sub.setAttribute("dy", "4");
       sub.textContent = l.sub;
-
       txt.appendChild(sub);
     }
-
     labelsG.appendChild(txt);
   });
 
@@ -731,7 +847,10 @@ function gerarTextoQualidade() {
 
 function selectSegment(id) {
   state.selected = id;
+  state.activeSelect = null; // Resetar o select ativo ao trocar de segmento
   const seg = SEGMENTS[id];
+  if (!seg) return;
+  
   document.getElementById("selBadge").textContent = id;
   document.getElementById("selArtery").textContent = `${seg.artery} — ${seg.name}`;
 
@@ -761,6 +880,33 @@ function renderHighlights() {
       el.classList.add("selected");
     }
   });
+}
+
+function setClassification(typeKey) {
+  if (state.selected == null) return;
+  const isLM = isLMSegment(state.selected);
+  const lmTipoSalvo = isLM && state.classified[state.selected] ? state.classified[state.selected].lm_tipo : null;
+
+  if (typeKey === '') {
+    if (isLM) {
+      const lmTipoSalvo = state.classified[state.selected] ? state.classified[state.selected].lm_tipo : null;
+      delete state.classified[state.selected];
+      if (lmTipoSalvo) {
+        state.classified[state.selected] = { type: null, lm_tipo: lmTipoSalvo };
+      }
+    } else {
+      delete state.classified[state.selected];
+    }
+    document.getElementById("selDesc").textContent = "Sem lesão";
+  } else {
+    state.classified[state.selected] = { type: typeKey };
+    if (lmTipoSalvo) state.classified[state.selected].lm_tipo = lmTipoSalvo;
+    document.getElementById("selDesc").textContent = `Classificado: ${CLASSIFICATIONS[typeKey].label}`;
+  }
+  state.activeSelect = null; // Resetar select ativo
+  renderHighlights(); 
+  renderClassGrid(); 
+  renderSummary();
 }
 
 function renderClassGrid() {
@@ -800,53 +946,27 @@ function renderClassGrid() {
   const currentData = state.classified[state.selected];
   const isLM = isLMSegment(state.selected);
 
-  // Botão "Sem estenose"
   const noneBtn = document.createElement("button");
   noneBtn.className = "class-btn";
   if (!currentData || !currentData.type) noneBtn.classList.add("active");
   noneBtn.style.color = "#ff00ff";
-  noneBtn.innerHTML = `<span style="display:inline-block; width:12px; height:0; border-bottom: 3px dashed #ff00ff; margin-right:4px; flex-shrink: 0;"></span>Sem estenose 0%`;
+  noneBtn.innerHTML = `<span style="display:inline-block; width:12px; height:0; border-bottom: 3px dashed #ff00ff; margin-right:4px; flex-shrink: 0;"></span>Sem estenose 0% <span class="kbd">N</span>`;
   noneBtn.disabled = state.selected == null;
-  noneBtn.addEventListener("click", () => {
-    if (!state.selected) return;
-    // Preserva lm_tipo se for LM, senão remove tudo
-    if (isLM) {
-      const lmTipoSalvo = state.classified[state.selected] ? state.classified[state.selected].lm_tipo : null;
-      delete state.classified[state.selected];
-      if (lmTipoSalvo) {
-        state.classified[state.selected] = { type: null, lm_tipo: lmTipoSalvo };
-      }
-    } else {
-      delete state.classified[state.selected];
-    }
-    renderHighlights(); renderClassGrid(); renderSummary();
-    document.getElementById("selDesc").textContent = "Sem lesão";
-  });
+  noneBtn.addEventListener("click", () => setClassification(''));
   grid.appendChild(noneBtn);
 
-  // Botões de classificação
   for (const key in CLASSIFICATIONS) {
     const c = CLASSIFICATIONS[key];
     const btn = document.createElement("button");
     btn.className = "class-btn";
     if (currentData && currentData.type === key) btn.classList.add("active");
     btn.style.color = c.raw;
-    btn.innerHTML = `<span class="swatch" style="background:${c.raw}"></span>${c.label}`;
+    btn.innerHTML = `<span class="swatch" style="background:${c.raw}"></span>${c.label} <span class="kbd">${c.shortcut}</span>`;
     btn.disabled = state.selected == null;
-    btn.addEventListener("click", () => {
-      if (!state.selected) return;
-      // Preserva lm_tipo se for LM
-      const lmTipoSalvo = isLM && state.classified[state.selected] ? state.classified[state.selected].lm_tipo : null;
-      state.classified[state.selected] = { type: key };
-      if (lmTipoSalvo) state.classified[state.selected].lm_tipo = lmTipoSalvo;
-      renderHighlights(); renderClassGrid(); renderSummary();
-      document.getElementById("selDesc").textContent = `Classificado: ${c.label}`;
-    });
+    btn.addEventListener("click", () => setClassification(key));
     grid.appendChild(btn);
   }
 
-  // ====== Lógica de exibição dos subcampos ======
-  // Primeiro esconde TODOS os subcampos
   groupPlaca.style.display = 'none';
   groupExtensao.style.display = 'none';
   groupHRP.style.display = 'none';
@@ -863,7 +983,6 @@ function renderClassGrid() {
   if (currentData) {
     subGroup.style.display = "block";
 
-    // Sempre exibe "Tipo de LM" quando for LM (mesmo sem classificação de lesão)
     if (isLM) {
       groupLMTipo.style.display = 'block';
       lmTipoSelect.value = currentData.lm_tipo || "";
@@ -894,29 +1013,33 @@ function renderClassGrid() {
       groupNaoInterpretavel.style.display = 'block';
       naoInterpretavelSelect.value = currentData.artefato || "";
     } else if (currentData.type) {
-      // Lesões usuais (Mínima, Discreta, Moderada, Importante, Ocluída)
       groupPlaca.style.display = 'block';
       groupExtensao.style.display = 'block';
       placaSelect.value = currentData.placa || "";
       extensaoSelect.value = currentData.extensao || "";
 
-      // HRP só aparece para segmentos que NÃO sejam LM
       if (!isLM) {
         groupHRP.style.display = 'block';
         hrpSelect.value = currentData.hrp || "";
       }
-      // Para LM, groupHRP permanece 'none' (já definido acima)
+    }
+    
+    // Define o select ativo inicial para as setas verticais
+    const visibleSelects = getVisibleSelects();
+    if (visibleSelects.length > 0) {
+      state.activeSelect = visibleSelects[0];
+      highlightActiveSelect();
     }
   } else {
-    // Sem classificação
     if (isLM) {
       subGroup.style.display = "block";
       groupLMTipo.style.display = 'block';
-      // Todos os outros campos já estão 'none' (definidos acima)
       if (!state.classified[state.selected]) {
         state.classified[state.selected] = { type: null };
       }
       lmTipoSelect.value = state.classified[state.selected].lm_tipo || "";
+      state.activeSelect = 'lmTipoSelect';
+      highlightActiveSelect();
     } else {
       subGroup.style.display = "none";
     }
@@ -973,6 +1096,7 @@ document.getElementById("stentSelect").addEventListener("change", (e) => {
   if (state.selected && state.classified[state.selected]) {
     state.classified[state.selected].reestenose = e.target.value;
     state.classified[state.selected].artefato = "";
+    state.activeSelect = null;
     renderClassGrid();
     renderSummary();
   }
@@ -1037,6 +1161,273 @@ document.getElementById("naoInterpretavelSelect").addEventListener("change", (e)
 });
 
 // ==============================================================================
+// ATALHOS DE TECLADO (SHORTCUTS) E NAVEGAÇÃO POR SETAS
+// ==============================================================================
+function isGroupVisible(id) {
+  const el = document.getElementById(id);
+  return el && el.style.display !== 'none';
+}
+
+// Ordem lógica de navegação dos selects verticais
+const orderedSelectGroups = [
+  { group: 'groupLMTipo', select: 'lmTipoSelect' },
+  { group: 'groupPlaca', select: 'placaSelect' },
+  { group: 'groupExtensao', select: 'extensaoSelect' },
+  { group: 'groupHRP', select: 'hrpSelect' },
+  { group: 'groupStent', select: 'stentSelect' },
+  { group: 'groupStentMorfo', select: 'stentMorfoSelect' },
+  { group: 'groupStentArtefato', select: 'stentArtefatoSelect' },
+  { group: 'groupEnxertoTipo', select: 'enxertoTipoSelect' },
+  { group: 'groupNaoInterpretavel', select: 'naoInterpretavelSelect' }
+];
+
+function getVisibleSelects() {
+  return orderedSelectGroups
+    .filter(item => isGroupVisible(item.group))
+    .map(item => item.select);
+}
+
+function highlightActiveSelect() {
+  document.querySelectorAll('select').forEach(s => s.classList.remove('active-select'));
+  if (state.activeSelect) {
+    const el = document.getElementById(state.activeSelect);
+    if (el) el.classList.add('active-select');
+  }
+}
+
+function setDropdownValue(selectId, value) {
+  const select = document.getElementById(selectId);
+  if (!select) return;
+  select.value = value;
+  state.activeSelect = selectId; // Define como ativo ao usar atalho direto
+  highlightActiveSelect();
+  const event = new Event('change', { bubbles: true });
+  select.dispatchEvent(event);
+}
+
+function toggleCheckbox(inputId, rowId, fieldKey) {
+  const input = document.getElementById(inputId);
+  const row = document.getElementById(rowId);
+  if (!input || !row) return;
+  
+  input.checked = !input.checked;
+  if (state.selected && state.classified[state.selected]) {
+    state.classified[state.selected][fieldKey] = input.checked;
+    atualizarCheckboxVisual(row, input.checked);
+    renderSummary();
+  }
+}
+
+// Função para navegar options com setas laterais
+function cycleDropdown(selectId, direction) {
+  const select = document.getElementById(selectId);
+  if (!select) return;
+  
+  let idx = select.selectedIndex;
+  let nextIdx = idx + direction;
+  
+  while (true) {
+    if (nextIdx < 0) nextIdx = select.options.length - 1;
+    if (nextIdx >= select.options.length) nextIdx = 0;
+    
+    // Pula a opção "Selecione..."
+    if (select.options[nextIdx].value !== "") break;
+    
+    if (nextIdx === idx) return; 
+    nextIdx += direction;
+  }
+  
+  select.selectedIndex = nextIdx;
+  select.dispatchEvent(new Event('change', { bubbles: true }));
+}
+
+function toggleHelp() {
+  const modal = document.getElementById('helpModal');
+  if (!modal) return;
+  state.helpOpen = !state.helpOpen;
+  modal.style.display = state.helpOpen ? 'flex' : 'none';
+}
+
+document.getElementById('btnOpenHelp').addEventListener('click', toggleHelp);
+document.getElementById('btnCloseHelp').addEventListener('click', toggleHelp);
+
+document.addEventListener('keydown', (e) => {
+  const tag = e.target.tagName.toLowerCase();
+  const isTyping = tag === 'input' || tag === 'textarea' || tag === 'select';
+
+  // Global Actions
+  if (e.ctrlKey || e.metaKey) {
+    if (e.key === 'j' || e.key === 'J') { e.preventDefault(); document.getElementById('btnExport').click(); return; }
+    if (e.key === 'g' || e.key === 'G') { e.preventDefault(); document.getElementById('btnGenerateAI').click(); return; }
+    if (e.shiftKey && (e.key === 'e' || e.key === 'E')) { e.preventDefault(); document.getElementById('btnExportWord').click(); return; }
+    if (e.shiftKey && (e.key === 'l' || e.key === 'L')) { e.preventDefault(); document.getElementById('btnClearAll').click(); return; }
+  }
+
+  if (isTyping) return;
+
+  if (e.key === '?' || (e.shiftKey && e.key === '/')) {
+    e.preventDefault();
+    toggleHelp();
+    return;
+  }
+
+  if (state.helpOpen) {
+    if (e.key === 'Escape') toggleHelp();
+    return;
+  }
+
+  if (e.key === 'Escape') {
+    if (state.selected !== null) {
+      state.selected = null;
+      state.activeSelect = null;
+      renderHighlights();
+      renderClassGrid();
+      document.getElementById('selBadge').textContent = '—';
+      document.getElementById('selArtery').textContent = 'Nenhum segmento';
+      document.getElementById('selDesc').textContent = 'Clique sobre um vaso na imagem';
+    }
+    return;
+  }
+
+  if ((e.key === 'Backspace' || e.key === 'Delete') && state.selected !== null) {
+    e.preventDefault();
+    document.getElementById('btnClear').click();
+    return;
+  }
+
+  // --- NOVA LÓGICA DE SETAS (USANDO e.code PARA IGNORAR SHIFT DO TECLADO NUMÉRICO) ---
+  if (e.code === 'ArrowUp' || e.code === 'ArrowDown' || e.code === 'ArrowLeft' || e.code === 'ArrowRight') {
+    e.preventDefault();
+    const visibleSelects = getVisibleSelects();
+    if (visibleSelects.length === 0) return;
+
+    // Garante que há um select ativo
+    if (!state.activeSelect || !visibleSelects.includes(state.activeSelect)) {
+      state.activeSelect = visibleSelects[0];
+      highlightActiveSelect();
+    }
+
+    if (e.code === 'ArrowLeft' || e.code === 'ArrowRight') {
+      // Navega opções do menu atualmente ativo
+      const dir = (e.code === 'ArrowRight') ? 1 : -1;
+      cycleDropdown(state.activeSelect, dir);
+    } else {
+      // Navega entre os menus verticais (campos)
+      const dir = (e.code === 'ArrowDown') ? 1 : -1;
+      let currentIdx = visibleSelects.indexOf(state.activeSelect);
+      let nextIdx = (currentIdx + dir + visibleSelects.length) % visibleSelects.length;
+      state.activeSelect = visibleSelects[nextIdx];
+      highlightActiveSelect();
+    }
+    return;
+  }
+
+  // --- LÓGICA SHIFT + 0-8 (Corrigida para teclado ABNT e Numérico) ---
+  if (e.shiftKey) {
+    let shiftNum = -1;
+    if (e.code.startsWith('Digit')) {
+      shiftNum = parseInt(e.code.replace('Digit', ''));
+    } else if (e.code.startsWith('Numpad') && /^Numpad[0-8]$/.test(e.code)) {
+      shiftNum = parseInt(e.code.replace('Numpad', ''));
+    }
+    if (shiftNum >= 0 && shiftNum <= 8) {
+      e.preventDefault();
+      selectSegment(10 + shiftNum);
+      return;
+    }
+  }
+
+  // Extrai o número pressionado (0-9), válido para teclado normal e numérico
+  let pressedNum = -1;
+  if (e.code.startsWith('Digit')) {
+    pressedNum = parseInt(e.code.replace('Digit', ''));
+  } else if (e.code.startsWith('Numpad') && /^Numpad[0-9]$/.test(e.code)) {
+    pressedNum = parseInt(e.code.replace('Numpad', ''));
+  }
+
+  // Seleção de segmentos 0-9 (apenas se nenhum subcampo de números estiver ativo OU se nenhum segmento estiver selecionado)
+  const subFieldsUsingNumbersOpen = isGroupVisible('groupPlaca') || isGroupVisible('groupStent') || isGroupVisible('groupEnxertoAnastProx') || isGroupVisible('groupStentArtefato') || isGroupVisible('groupNaoInterpretavel');
+
+  if ((!subFieldsUsingNumbersOpen || state.selected === null) && pressedNum >= 0 && pressedNum <= 9) {
+    if (!e.shiftKey) { 
+      e.preventDefault();
+      selectSegment(pressedNum);
+      return;
+    }
+  }
+
+  if (state.selected === null) return;
+
+  const key = e.key.toLowerCase();
+
+  // Main classifications
+  const classMap = {
+    'n': '', 'm': 'minima', 'd': 'discreta', 'o': 'moderada',
+    'i': 'grave', 'c': 'oclusao', 's': 'stent', 'e': 'enxerto', 'x': 'naointerpretavel'
+  };
+  if (classMap[key] !== undefined) {
+    e.preventDefault();
+    setClassification(classMap[key]);
+    return;
+  }
+
+  // Subfields letter shortcuts
+  if (isGroupVisible('groupLMTipo')) {
+    const lmMap = { 'b': 'bifurcada', 't': 'trifurcada', 'a': 'anomalia' };
+    if (lmMap[key]) { setDropdownValue('lmTipoSelect', lmMap[key]); return; }
+  }
+  if (isGroupVisible('groupExtensao')) {
+    const extMap = { 'f': 'focal', 's': 'segmentar', 'd': 'difusa', 'u': 'multiplas' };
+    if (extMap[key]) { setDropdownValue('extensaoSelect', extMap[key]); return; }
+  }
+  if (isGroupVisible('groupHRP')) {
+    const hrpMap = { 'r': 'remodelamento', 'p': 'puntiforme', 'b': 'baixaatenuacao', 'g': 'guardanapo' };
+    if (hrpMap[key]) { setDropdownValue('hrpSelect', hrpMap[key]); return; }
+  }
+  if (isGroupVisible('groupStentMorfo')) {
+    const morfoMap = { 'f': 'focal', 'd': 'difusa', 'c': 'difusa_confinada', 'p': 'difusa_proliferativa', 'o': 'oclusao_total' };
+    if (morfoMap[key]) { setDropdownValue('stentMorfoSelect', morfoMap[key]); return; }
+  }
+  if (isGroupVisible('groupEnxertoTipo')) {
+    if (key === 'a') { setDropdownValue('enxertoTipoSelect', 'arterial'); return; }
+    if (key === 'v') { setDropdownValue('enxertoTipoSelect', 'venoso'); return; }
+  }
+
+  // Subfields using numbers (when subfields are open and segment is selected)
+  if (isGroupVisible('groupPlaca')) {
+    const placaMap = { '1': 'nao_calcificada', '2': 'pred_nao_calcificada', '3': 'pred_calcificada' };
+    const keyStr = String(pressedNum);
+    if (placaMap[keyStr]) { setDropdownValue('placaSelect', placaMap[keyStr]); return; }
+  }
+  if (isGroupVisible('groupStent')) {
+    const stentMap = { '1': 'sem_reestenose', '2': 'isr_nao_significativa', '3': 'isr_significativa', '4': 'stent_ocluido', '5': 'stent_nao_interpretavel' };
+    const keyStr = String(pressedNum);
+    if (stentMap[keyStr]) { setDropdownValue('stentSelect', stentMap[keyStr]); return; }
+  }
+  if (isGroupVisible('groupEnxertoAnastProx')) {
+    const keyStr = String(pressedNum);
+    if (keyStr === '1') { toggleCheckbox('enxertoAnastProxInput', 'enxertoAnastProxRow', 'anast_prox'); return; }
+    if (keyStr === '2') { toggleCheckbox('enxertoAnastDistInput', 'enxertoAnastDistRow', 'anast_dist'); return; }
+    if (keyStr === '3') { toggleCheckbox('enxertoLeitoInput', 'enxertoLeitoRow', 'leito_dist'); return; }
+  }
+  if (isGroupVisible('groupStentArtefato') || isGroupVisible('groupNaoInterpretavel')) {
+    const targetId = isGroupVisible('groupStentArtefato') ? 'stentArtefatoSelect' : 'naoInterpretavelSelect';
+    const selectEl = document.getElementById(targetId);
+    const options = Array.from(selectEl.options).map(o => o.value).filter(v => v !== "");
+    
+    let index = -1;
+    if (pressedNum >= 1 && pressedNum <= 9) index = pressedNum - 1;
+    else if (pressedNum === 0) index = 9;
+    else if (e.key === '-' || e.code === 'NumpadSubtract' || e.code === 'Minus') index = 10;
+    
+    if (index >= 0 && index < options.length) {
+      setDropdownValue(targetId, options[index]);
+      return;
+    }
+  }
+});
+
+// ==============================================================================
 // CÁLCULO DO SIS
 // ==============================================================================
 function calcularSIS() {
@@ -1077,7 +1468,6 @@ function atualizarSIS() {
 // RESUMO DE LESÕES (lista lateral)
 // ==============================================================================
 function renderSummary() {
-  //atualizarResumoAutomatico();
   atualizarSIS();
   const list = document.getElementById("summaryList");
   const ids = Object.keys(state.classified).map(Number)
@@ -1223,62 +1613,62 @@ function getAIPayload() {
 
     prompt: `Preencha o texto de TCE, DA, CX e CD substituindo os campos entre colchetes exclusivamente pelas opções selecionadas. 
 
-	**REGRAS:**
+    **REGRAS:**
 
-	* Manter exatamente a ordem apresentada.
-	* Inserir somente as opções selecionadas/verdadeiras.
-	* Excluir completamente as opções não selecionadas.
-	* Não alterar a terminologia dos campos.
-	* Não interpretar.
-	* Não resumir.
-	* Não acrescentar informações.
-	* Não repetir informações.
-	* Quando houver mais de uma lesão na DA, repetir a sequência correspondente para cada lesão, mantendo cada característica associada à sua respectiva lesão.
-	* Se não há informações sobre DG1 ou DG2 escreva no fim de DA uma das opções: [DG1 e DG2: Sem estenoses significativas / DG1: Sem estenose significativa / DG2: Sem estenose significativa]
-	* Se não há informações sobre MG1 ou MG2 escreva no fim de CX uma das opções: [MG1 e MG2: Sem estenoses significativas / MG1: Sem estenose significativa / MG2: Sem estenose significativa]
-	* Se não há informações sobre VP (CD) ou DP (CD) escreva no fim de CD uma das opções: [VP (CD) e DP (CD): Sem estenoses significativas / VP (CD): Sem estenose significativa / DP (CD): Sem estenose significativa]
-	* Se não há informações sobre TCE, DA, CX ou CD então considere 'Sem placas evidentes'
-	* Informações presentes nos dados que não tenham campo correspondente neste template devem ser ignoradas em silêncio, sem mencionar que foram omitidas.	
-	* Os achados sobre DG1 e DG2 devem estar em DA - os achados de MG1 e MG2 devem estar em CX - os achados de VP (CD) e DP (CD) devem estar em CD - caso exista os achados de Ramo Intermediário deve estar em DA
-	
-
-
-	[TCE]: [bifurcado/trifurcado/anomalia], [sem placa evidente / placa], [parcialmente calcificada / calcificada], [focal / segmentar / difusa / múltiplas] com características de [remodelamento positivo / calcificação puntiforme (spotty) / placa de baixa atenuação / sinal do anel de guardanapo (napkin-ring sign)] , determinando estenose [mínima / discreta / moderada / importante / ocluída]. Ou [stent] [sem reestenose / ISR não significativa &lt; 50% / ISR significativa &ge; 50% / Stend ocluído 100% / Não interpretável] Ou [ não interpretável ] por [ruído excessivo / contraste intraluminal subótimo / movimento corporal / movimento respiratório / movimento cardíaco / transição - stairstep / interpolação / duplicação / endurecimento do feixe / artefato metálico / blooming] ou [Enxerto] [arterial / venoso] 
+    * Manter exatamente a ordem apresentada.
+    * Inserir somente as opções selecionadas/verdadeiras.
+    * Excluir completamente as opções não selecionadas.
+    * Não alterar a terminologia dos campos.
+    * Não interpretar.
+    * Não resumir.
+    * Não acrescentar informações.
+    * Não repetir informações.
+    * Quando houver mais de uma lesão na DA, repetir a sequência correspondente para cada lesão, mantendo cada característica associada à sua respectiva lesão.
+    * Se não há informações sobre DG1 ou DG2 escreva no fim de DA uma das opções: [DG1 e DG2: Sem estenoses significativas / DG1: Sem estenose significativa / DG2: Sem estenose significativa]
+    * Se não há informações sobre MG1 ou MG2 escreva no fim de CX uma das opções: [MG1 e MG2: Sem estenoses significativas / MG1: Sem estenose significativa / MG2: Sem estenose significativa]
+    * Se não há informações sobre VP (CD) ou DP (CD) escreva no fim de CD uma das opções: [VP (CD) e DP (CD): Sem estenoses significativas / VP (CD): Sem estenose significativa / DP (CD): Sem estenose significativa]
+    * Se não há informações sobre TCE, DA, CX ou CD então considere 'Sem placas evidentes'
+    * Informações presentes nos dados que não tenham campo correspondente neste template devem ser ignoradas em silêncio, sem mencionar que foram omitidas.	
+    * Os achados sobre DG1 e DG2 devem estar em DA - os achados de MG1 e MG2 devem estar em CX - os achados de VP (CD) e DP (CD) devem estar em CD - caso exista os achados de Ramo Intermediário deve estar em DA
+    
 
 
-	[DA]: [sem placa evidente / placa], [não calcificada / parcialmente calcificada / calcificada], [focal / segmentar / difusa / múltiplas] nos segmentos [proximal / médio / distal] com características de [remodelamento positivo / calcificação puntiforme (spotty) / placa de baixa atenuação / sinal do anel de guardanapo (napkin-ring sign)], determinando estenose [mínima / discreta / moderada / importante / ocluída].  Ou [stent] [sem reestenose / ISR não significativa &lt; 50% / ISR significativa &ge; 50% / Stend ocluído 100% / Não interpretável] Ou [ não interpretável ] por [ruído excessivo / contraste intraluminal subótimo / movimento corporal / movimento respiratório / movimento cardíaco / transição - stairstep / interpolação / duplicação / endurecimento do feixe / artefato metálico / blooming] ou [Enxerto] [arterial / venoso] 
-
-	Quando houver uma segunda ou mais lesões, repetir para cada lesão:
-
-	[placa], [não calcificada / parcialmente calcificada / calcificada], [focal / segmentar / difusa / múltiplas] nos segmentos [proximal / médio / distal] com características de [remodelamento positivo / calcificação puntiforme (spotty) / placa de baixa atenuação / sinal do anel de guardanapo (napkin-ring sign)], determinando estenose [mínima / discreta / moderada / importante / ocluída].  Ou [stent] [sem reestenose / ISR não significativa &lt; 50% / ISR significativa &ge; 50% / Stend ocluído 100% / Não interpretável] Ou [ não interpretável ] por [ruído excessivo / contraste intraluminal subótimo / movimento corporal / movimento respiratório / movimento cardíaco / transição - stairstep / interpolação / duplicação / endurecimento do feixe / artefato metálico / blooming] ou [Enxerto] [arterial / venoso] 
-
-	
-	[CX]: [sem placa evidente / placa], [não calcificada / parcialmente calcificada / calcificada], [focal / segmentar / difusa / múltiplas] nos segmentos [proximal / médio / distal] com características de [remodelamento positivo / calcificação puntiforme (spotty) / placa de baixa atenuação / sinal do anel de guardanapo (napkin-ring sign)], determinando estenose [mínima / discreta / moderada / importante / ocluída].  Ou [stent] [sem reestenose / ISR não significativa &lt; 50% / ISR significativa &ge; 50% / Stend ocluído 100% / Não interpretável] Ou [ não interpretável ] por [ruído excessivo / contraste intraluminal subótimo / movimento corporal / movimento respiratório / movimento cardíaco / transição - stairstep / interpolação / duplicação / endurecimento do feixe / artefato metálico / blooming] ou [Enxerto] [arterial / venoso] 
-
-	Quando houver uma segunda ou mais lesões, repetir para cada lesão:
-
-	[placa], [não calcificada / parcialmente calcificada / calcificada], [focal / segmentar / difusa / múltiplas] nos segmentos [proximal / médio / distal] com características de [remodelamento positivo / calcificação puntiforme (spotty) / placa de baixa atenuação / sinal do anel de guardanapo (napkin-ring sign)], determinando estenose [mínima / discreta / moderada / importante / ocluída ].  Ou [stent] [sem reestenose / ISR não significativa &lt; 50% / ISR significativa &ge; 50% / Stend ocluído 100% / Não interpretável] Ou [ não interpretável ] por [ruído excessivo / contraste intraluminal subótimo / movimento corporal / movimento respiratório / movimento cardíaco / transição - stairstep / interpolação / duplicação / endurecimento do feixe / artefato metálico / blooming] ou [Enxerto] [arterial / venoso] 
-
-	
-	[CD]: [sem placa evidente / placa], [não calcificada / parcialmente calcificada / calcificada], [focal / segmentar / difusa / múltiplas] nos segmentos [proximal / médio / distal] com características de [remodelamento positivo / calcificação puntiforme (spotty) / placa de baixa atenuação / sinal do anel de guardanapo (napkin-ring sign)], determinando estenose [mínima / discreta / moderada / importante / ocluída ].  Ou [stent] [sem reestenose / ISR não significativa &lt; 50% / ISR significativa &ge; 50% / Stend ocluído 100% / Não interpretável] Ou [ não interpretável ] por [ruído excessivo / contraste intraluminal subótimo / movimento corporal / movimento respiratório / movimento cardíaco / transição - stairstep / interpolação / duplicação / endurecimento do feixe / artefato metálico / blooming] ou [Enxerto] [arterial / venoso] 
-
-	Quando houver uma segunda ou mais lesões, repetir para cada lesão:
-
-	[placa], [não calcificada / parcialmente calcificada / calcificada], [focal / segmentar / difusa / múltiplas] nos segmentos [proximal / médio / distal] com características de [remodelamento positivo / calcificação puntiforme (spotty) / placa de baixa atenuação / sinal do anel de guardanapo (napkin-ring sign)], determinando estenose [mínima / discreta / moderada / importante / ocluída].  Ou [stent] [sem reestenose / ISR não significativa &lt; 50% / ISR significativa &ge; 50% / Stend ocluído 100% / Não interpretável] Ou [ não interpretável ] por [ruído excessivo / contraste intraluminal subótimo / movimento corporal / movimento respiratório / movimento cardíaco / transição - stairstep / interpolação / duplicação / endurecimento do feixe / artefato metálico / blooming] ou [Enxerto] [arterial / venoso] 
+    [TCE]: [bifurcado/trifurcado/anomalia], [sem placa evidente / placa], [parcialmente calcificada / calcificada], [focal / segmentar / difusa / múltiplas] com características de [remodelamento positivo / calcificação puntiforme (spotty) / placa de baixa atenuação / sinal do anel de guardanapo (napkin-ring sign)] , determinando estenose [mínima / discreta / moderada / importante / ocluída]. Ou [stent] [sem reestenose / ISR não significativa &lt; 50% / ISR significativa &ge; 50% / Stend ocluído 100% / Não interpretável] Ou [ não interpretável ] por [ruído excessivo / contraste intraluminal subótimo / movimento corporal / movimento respiratório / movimento cardíaco / transição - stairstep / interpolação / duplicação / endurecimento do feixe / artefato metálico / blooming] ou [Enxerto] [arterial / venoso] 
 
 
-	**IMPORTANTE:** não escrever os colchetes, não escrever as opções não selecionadas e não acrescentar qualquer informação além das opções selecionadas.
-	
-	
-	
-	**Conclusão:**
-	
-	- Placas ateroscleróticas em [pontuação_sis] segmentos coronarianos (carga de placa: [minima / discreta / moderada / importante / extensa]).
-	- Escreva "[artéria]: estenose [grau]" para as condições encontradas em apenas uma frase de maneira coesa e coerente.
-	
-	
+    [DA]: [sem placa evidente / placa], [não calcificada / parcialmente calcificada / calcificada], [focal / segmentar / difusa / múltiplas] nos segmentos [proximal / médio / distal] com características de [remodelamento positivo / calcificação puntiforme (spotty) / placa de baixa atenuação / sinal do anel de guardanapo (napkin-ring sign)], determinando estenose [mínima / discreta / moderada / importante / ocluída].  Ou [stent] [sem reestenose / ISR não significativa &lt; 50% / ISR significativa &ge; 50% / Stend ocluído 100% / Não interpretável] Ou [ não interpretável ] por [ruído excessivo / contraste intraluminal subótimo / movimento corporal / movimento respiratório / movimento cardíaco / transição - stairstep / interpolação / duplicação / endurecimento do feixe / artefato metálico / blooming] ou [Enxerto] [arterial / venoso] 
 
-	`,
+    Quando houver uma segunda ou mais lesões, repetir para cada lesão:
+
+    [placa], [não calcificada / parcialmente calcificada / calcificada], [focal / segmentar / difusa / múltiplas] nos segmentos [proximal / médio / distal] com características de [remodelamento positivo / calcificação puntiforme (spotty) / placa de baixa atenuação / sinal do anel de guardanapo (napkin-ring sign)], determinando estenose [mínima / discreta / moderada / importante / ocluída].  Ou [stent] [sem reestenose / ISR não significativa &lt; 50% / ISR significativa &ge; 50% / Stend ocluído 100% / Não interpretável] Ou [ não interpretável ] por [ruído excessivo / contraste intraluminal subótimo / movimento corporal / movimento respiratório / movimento cardíaco / transição - stairstep / interpolação / duplicação / endurecimento do feixe / artefato metálico / blooming] ou [Enxerto] [arterial / venoso] 
+
+    
+    [CX]: [sem placa evidente / placa], [não calcificada / parcialmente calcificada / calcificada], [focal / segmentar / difusa / múltiplas] nos segmentos [proximal / médio / distal] com características de [remodelamento positivo / calcificação puntiforme (spotty) / placa de baixa atenuação / sinal do anel de guardanapo (napkin-ring sign)], determinando estenose [mínima / discreta / moderada / importante / ocluída].  Ou [stent] [sem reestenose / ISR não significativa &lt; 50% / ISR significativa &ge; 50% / Stend ocluído 100% / Não interpretável] Ou [ não interpretável ] por [ruído excessivo / contraste intraluminal subótimo / movimento corporal / movimento respiratório / movimento cardíaco / transição - stairstep / interpolação / duplicação / endurecimento do feixe / artefato metálico / blooming] ou [Enxerto] [arterial / venoso] 
+
+    Quando houver uma segunda ou mais lesões, repetir para cada lesão:
+
+    [placa], [não calcificada / parcialmente calcificada / calcificada], [focal / segmentar / difusa / múltiplas] nos segmentos [proximal / médio / distal] com características de [remodelamento positivo / calcificação puntiforme (spotty) / placa de baixa atenuação / sinal do anel de guardanapo (napkin-ring sign)], determinando estenose [mínima / discreta / moderada / importante / ocluída ].  Ou [stent] [sem reestenose / ISR não significativa &lt; 50% / ISR significativa &ge; 50% / Stend ocluído 100% / Não interpretável] Ou [ não interpretável ] por [ruído excessivo / contraste intraluminal subótimo / movimento corporal / movimento respiratório / movimento cardíaco / transição - stairstep / interpolação / duplicação / endurecimento do feixe / artefato metálico / blooming] ou [Enxerto] [arterial / venoso] 
+
+    
+    [CD]: [sem placa evidente / placa], [não calcificada / parcialmente calcificada / calcificada], [focal / segmentar / difusa / múltiplas] nos segmentos [proximal / médio / distal] com características de [remodelamento positivo / calcificação puntiforme (spotty) / placa de baixa atenuação / sinal do anel de guardanapo (napkin-ring sign)], determinando estenose [mínima / discreta / moderada / importante / ocluída ].  Ou [stent] [sem reestenose / ISR não significativa &lt; 50% / ISR significativa &ge; 50% / Stend ocluído 100% / Não interpretável] Ou [ não interpretável ] por [ruído excessivo / contraste intraluminal subótimo / movimento corporal / movimento respiratório / movimento cardíaco / transição - stairstep / interpolação / duplicação / endurecimento do feixe / artefato metálico / blooming] ou [Enxerto] [arterial / venoso] 
+
+    Quando houver uma segunda ou mais lesões, repetir para cada lesão:
+
+    [placa], [não calcificada / parcialmente calcificada / calcificada], [focal / segmentar / difusa / múltiplas] nos segmentos [proximal / médio / distal] com características de [remodelamento positivo / calcificação puntiforme (spotty) / placa de baixa atenuação / sinal do anel de guardanapo (napkin-ring sign)], determinando estenose [mínima / discreta / moderada / importante / ocluída].  Ou [stent] [sem reestenose / ISR não significativa &lt; 50% / ISR significativa &ge; 50% / Stend ocluído 100% / Não interpretável] Ou [ não interpretável ] por [ruído excessivo / contraste intraluminal subótimo / movimento corporal / movimento respiratório / movimento cardíaco / transição - stairstep / interpolação / duplicação / endurecimento do feixe / artefato metálico / blooming] ou [Enxerto] [arterial / venoso] 
+
+
+    **IMPORTANTE:** não escrever os colchetes, não escrever as opções não selecionadas e não acrescentar qualquer informação além das opções selecionadas.
+    
+    
+    
+    **Conclusão:**
+    
+    - Placas ateroscleróticas em [pontuação_sis] segmentos coronarianos (carga de placa: [minima / discreta / moderada / importante / extensa]).
+    - Escreva "[artéria]: estenose [grau]" para as condições encontradas em apenas uma frase de maneira coesa e coerente.
+    
+    
+
+    `,
 
 
     lesoes: Object.entries(state.classified).map(([id, data]) => {
@@ -1374,7 +1764,7 @@ document.getElementById("btnClear").addEventListener("click", () => {
 });
 
 document.getElementById("btnClearAll").addEventListener("click", () => {
-  state.classified = {}; state.selected = null;
+  state.classified = {}; state.selected = null; state.activeSelect = null;
   document.getElementById("selBadge").textContent = "—";
   document.getElementById("selArtery").textContent = "Nenhum segmento";
   document.getElementById("selDesc").textContent = "Clique sobre um vaso na imagem";
